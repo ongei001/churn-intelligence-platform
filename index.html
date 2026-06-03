@@ -1,0 +1,2734 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Churn Intelligence Platform | Insurance Brokerage</title>
+  <meta name="description" content="A CEO-facing churn prediction narrative for an East African insurance brokerage.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg-primary: #0a0f1e;
+      --bg-card: #0d1529;
+      --bg-card-hover: #111d38;
+      --border: rgba(201, 168, 76, 0.2);
+      --gold: #c9a84c;
+      --gold-bright: #f0c040;
+      --teal: #00d4b8;
+      --red: #e63946;
+      --amber: #f4a261;
+      --green: #2dd4bf;
+      --blue: #60a5fa;
+      --purple: #a78bfa;
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #475569;
+      --panel: rgba(13, 21, 41, 0.82);
+      --panel-strong: rgba(17, 29, 56, 0.92);
+      --shadow: 0 22px 80px rgba(0, 0, 0, 0.36);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      min-width: 320px;
+      margin: 0;
+      color: var(--text-primary);
+      background:
+        linear-gradient(180deg, rgba(0, 212, 184, 0.04), transparent 32rem),
+        linear-gradient(120deg, #070b15 0%, var(--bg-primary) 48%, #111827 100%);
+      font-family: "DM Sans", Arial, sans-serif;
+      line-height: 1.55;
+      overflow-x: hidden;
+    }
+
+    body.menu-open {
+      overflow: hidden;
+    }
+
+    body.ready #loading-screen {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-12px);
+    }
+
+    #loading-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      display: grid;
+      place-items: center;
+      background: #070b15;
+      transition: opacity 420ms ease, transform 420ms ease;
+    }
+
+    .loading-panel {
+      width: min(480px, calc(100vw - 40px));
+      padding: 34px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: rgba(13, 21, 41, 0.92);
+      box-shadow: var(--shadow);
+    }
+
+    .loading-title {
+      margin: 0 0 16px;
+      font-family: "Playfair Display", Georgia, serif;
+      font-size: clamp(2rem, 6vw, 3.4rem);
+      line-height: 1;
+      color: var(--gold-bright);
+    }
+
+    .loading-copy {
+      margin: 0 0 22px;
+      color: var(--text-secondary);
+    }
+
+    .loading-track {
+      width: 100%;
+      height: 8px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.18);
+    }
+
+    .loading-bar {
+      width: 0;
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold), var(--teal));
+      animation: loading 1.2s ease forwards;
+    }
+
+    @keyframes loading {
+      to { width: 100%; }
+    }
+
+    .progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 70;
+      width: 100%;
+      height: 4px;
+      background: rgba(148, 163, 184, 0.1);
+    }
+
+    #progress-bar {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold), var(--teal), var(--red));
+      transition: width 120ms linear;
+    }
+
+    .side-nav {
+      position: fixed;
+      inset: 0 auto 0 0;
+      z-index: 50;
+      width: 64px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      border-right: 1px solid rgba(201, 168, 76, 0.16);
+      background: rgba(7, 11, 21, 0.86);
+      backdrop-filter: blur(16px);
+    }
+
+    .side-nav a {
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      border-radius: 8px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.76rem;
+      font-weight: 700;
+      transition: transform 180ms ease, color 180ms ease, border-color 180ms ease, background 180ms ease;
+    }
+
+    .side-nav a:hover,
+    .side-nav a.active {
+      color: #090d16;
+      border-color: var(--gold-bright);
+      background: var(--gold-bright);
+      transform: translateY(-2px);
+    }
+
+    .mobile-bar {
+      position: fixed;
+      top: 4px;
+      left: 0;
+      right: 0;
+      z-index: 60;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(201, 168, 76, 0.16);
+      background: rgba(7, 11, 21, 0.92);
+      backdrop-filter: blur(16px);
+    }
+
+    .brand-mark {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .brand-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--gold-bright);
+      box-shadow: 0 0 18px rgba(240, 192, 64, 0.6);
+      flex: 0 0 auto;
+    }
+
+    .icon-button {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-primary);
+      background: rgba(13, 21, 41, 0.84);
+      cursor: pointer;
+    }
+
+    .icon-button span {
+      width: 18px;
+      height: 2px;
+      display: block;
+      background: var(--text-primary);
+      box-shadow: 0 6px 0 var(--text-primary), 0 -6px 0 var(--text-primary);
+    }
+
+    .mobile-menu {
+      position: fixed;
+      inset: 61px 12px auto 12px;
+      z-index: 58;
+      display: none;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: rgba(7, 11, 21, 0.96);
+      backdrop-filter: blur(18px);
+    }
+
+    .mobile-menu a {
+      padding: 10px 6px;
+      border-radius: 8px;
+      color: var(--text-secondary);
+      text-align: center;
+      text-decoration: none;
+      font-weight: 700;
+      border: 1px solid rgba(148, 163, 184, 0.12);
+    }
+
+    .mobile-menu a.active {
+      color: #090d16;
+      background: var(--gold-bright);
+      border-color: var(--gold-bright);
+    }
+
+    body.menu-open .mobile-menu {
+      display: grid;
+    }
+
+    .story-shell {
+      margin-left: 64px;
+    }
+
+    .chapter {
+      min-height: 100vh;
+      padding: clamp(72px, 8vw, 118px) clamp(22px, 4vw, 64px);
+      border-bottom: 1px solid rgba(201, 168, 76, 0.08);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .chapter::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 88% 8%, rgba(201, 168, 76, 0.08), transparent 24rem),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02), transparent 38%);
+    }
+
+    .chapter-inner {
+      position: relative;
+      z-index: 1;
+      width: min(1480px, 100%);
+      margin: 0 auto;
+    }
+
+    .chapter-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+      color: var(--gold-bright);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 0.78rem;
+    }
+
+    .chapter-kicker::before {
+      content: "";
+      width: 42px;
+      height: 1px;
+      background: var(--gold-bright);
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin: 0;
+      font-family: "Playfair Display", Georgia, serif;
+      line-height: 1.04;
+      letter-spacing: 0;
+    }
+
+    h1,
+    h2 {
+      max-width: 1080px;
+      font-size: clamp(2.6rem, 6vw, 6.6rem);
+      font-weight: 900;
+    }
+
+    h3 {
+      font-size: clamp(1.28rem, 2vw, 1.8rem);
+      font-weight: 700;
+    }
+
+    .subhead {
+      max-width: 900px;
+      margin: 22px 0 38px;
+      color: var(--text-secondary);
+      font-size: clamp(1.06rem, 1.7vw, 1.36rem);
+    }
+
+    .section-title {
+      margin: 10px 0 18px;
+      font-family: "DM Sans", Arial, sans-serif;
+      font-size: 0.86rem;
+      color: var(--gold-bright);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+    }
+
+    .grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .grid-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .grid-4 {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .card,
+    .chart-card,
+    .briefing,
+    .callout,
+    .table-panel,
+    .control-panel {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: 0 16px 55px rgba(0, 0, 0, 0.22);
+      backdrop-filter: blur(16px);
+    }
+
+    .card,
+    .briefing,
+    .callout,
+    .control-panel {
+      padding: clamp(18px, 2vw, 28px);
+    }
+
+    .card:hover,
+    .chart-card:hover,
+    .table-panel:hover {
+      border-color: rgba(240, 192, 64, 0.42);
+      background: var(--panel-strong);
+    }
+
+    .kpi-card {
+      min-height: 194px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .kpi-icon,
+    .mini-icon {
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(240, 192, 64, 0.28);
+      border-radius: 8px;
+      color: var(--gold-bright);
+      background: rgba(240, 192, 64, 0.08);
+      font-weight: 900;
+      font-size: 0.86rem;
+    }
+
+    .kpi-value {
+      margin-top: 24px;
+      font-size: clamp(2rem, 3.4vw, 4.2rem);
+      line-height: 1;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .kpi-label {
+      margin-top: 12px;
+      color: var(--text-primary);
+      font-weight: 700;
+      font-size: 1.02rem;
+    }
+
+    .kpi-note,
+    .insight,
+    .microcopy {
+      margin: 10px 0 0;
+      color: var(--text-secondary);
+      font-size: 0.94rem;
+    }
+
+    .microcopy strong {
+      color: var(--text-primary);
+    }
+
+    .chart-card {
+      padding: 22px;
+      min-height: 360px;
+    }
+
+    .chart-wrap {
+      position: relative;
+      width: 100%;
+      height: 290px;
+      margin-top: 18px;
+    }
+
+    .chart-wrap.tall {
+      height: 360px;
+    }
+
+    .chart-wrap.short {
+      height: 230px;
+    }
+
+    .chart-fallback {
+      display: none;
+      height: 100%;
+      place-items: center;
+      color: var(--text-secondary);
+      border: 1px dashed rgba(148, 163, 184, 0.24);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .briefing {
+      margin-top: 22px;
+      border-left: 4px solid var(--gold-bright);
+      font-size: clamp(1.02rem, 1.45vw, 1.22rem);
+    }
+
+    .briefing p,
+    .callout p {
+      margin: 0;
+    }
+
+    .transition-line {
+      margin-top: 34px;
+      padding-top: 20px;
+      color: var(--gold-bright);
+      font-weight: 700;
+      border-top: 1px solid rgba(201, 168, 76, 0.16);
+    }
+
+    .persona {
+      display: grid;
+      grid-template-columns: 58px 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .avatar {
+      width: 58px;
+      height: 58px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      background: rgba(148, 163, 184, 0.12);
+      color: var(--text-primary);
+      font-weight: 900;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+    }
+
+    .avatar.red {
+      color: #fff;
+      background: rgba(230, 57, 70, 0.18);
+      border-color: rgba(230, 57, 70, 0.4);
+      box-shadow: 0 0 28px rgba(230, 57, 70, 0.16);
+    }
+
+    .avatar.amber {
+      color: #160f04;
+      background: var(--amber);
+      border-color: var(--amber);
+    }
+
+    .avatar.green {
+      color: #03110f;
+      background: var(--teal);
+      border-color: var(--teal);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 28px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      color: var(--text-primary);
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .badge.high,
+    .status-urgent {
+      background: rgba(230, 57, 70, 0.18);
+      color: #ff9ca4;
+      border: 1px solid rgba(230, 57, 70, 0.38);
+    }
+
+    .badge.medium,
+    .status-high {
+      background: rgba(244, 162, 97, 0.18);
+      color: #ffc18e;
+      border: 1px solid rgba(244, 162, 97, 0.38);
+    }
+
+    .badge.low {
+      background: rgba(0, 212, 184, 0.16);
+      color: #8ff4e8;
+      border: 1px solid rgba(0, 212, 184, 0.34);
+    }
+
+    .heatmap {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: 8px;
+      background: rgba(13, 21, 41, 0.7);
+    }
+
+    .heatmap th,
+    .heatmap td,
+    .data-table th,
+    .data-table td,
+    .coefficient-table th,
+    .coefficient-table td,
+    .scenario-table th,
+    .scenario-table td {
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .heatmap th,
+    .data-table th,
+    .coefficient-table th,
+    .scenario-table th {
+      color: var(--gold-bright);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      background: rgba(7, 11, 21, 0.42);
+    }
+
+    .heat-red {
+      background: rgba(230, 57, 70, 0.22);
+      color: #ffd1d5;
+      font-weight: 800;
+    }
+
+    .heat-amber {
+      background: rgba(244, 162, 97, 0.22);
+      color: #ffd9bb;
+      font-weight: 800;
+    }
+
+    .heat-green {
+      background: rgba(0, 212, 184, 0.18);
+      color: #b6fff6;
+      font-weight: 800;
+    }
+
+    .signal-card {
+      position: relative;
+      min-height: 238px;
+      overflow: hidden;
+    }
+
+    .strength {
+      margin-top: 16px;
+    }
+
+    .strength-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--text-secondary);
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .strength-track {
+      height: 8px;
+      margin-top: 8px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(148, 163, 184, 0.16);
+    }
+
+    .strength-bar {
+      height: 100%;
+      width: var(--strength, 50%);
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--teal), var(--gold-bright), var(--red));
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 900ms ease;
+    }
+
+    .reveal.visible .strength-bar {
+      transform: scaleX(1);
+    }
+
+    .client-timeline {
+      display: grid;
+      grid-template-columns: 1.3fr 0.7fr;
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .event-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .event {
+      padding: 13px 14px;
+      border-radius: 8px;
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .event strong {
+      color: var(--gold-bright);
+    }
+
+    .model-card {
+      min-height: 460px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .model-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: auto;
+    }
+
+    .metric-chip {
+      padding: 7px 10px;
+      border-radius: 999px;
+      color: var(--text-primary);
+      font-size: 0.78rem;
+      font-weight: 800;
+      background: rgba(148, 163, 184, 0.12);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+    }
+
+    .sigmoid-visual {
+      width: 100%;
+      height: 180px;
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      border-radius: 8px;
+      background: rgba(7, 11, 21, 0.38);
+    }
+
+    .forest {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      min-height: 178px;
+      padding: 16px;
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      border-radius: 8px;
+      background: rgba(7, 11, 21, 0.38);
+    }
+
+    .tree {
+      width: 54px;
+      min-height: 120px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .tree .node {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px solid var(--teal);
+      background: rgba(0, 212, 184, 0.13);
+      position: relative;
+    }
+
+    .tree .node::before,
+    .tree .node::after {
+      content: "";
+      position: absolute;
+      top: 20px;
+      width: 20px;
+      height: 28px;
+      border-bottom: 2px solid rgba(0, 212, 184, 0.54);
+    }
+
+    .tree .node::before {
+      right: 8px;
+      border-left: 2px solid rgba(0, 212, 184, 0.54);
+      transform: rotate(18deg);
+    }
+
+    .tree .node::after {
+      left: 8px;
+      border-right: 2px solid rgba(0, 212, 184, 0.54);
+      transform: rotate(-18deg);
+    }
+
+    .tree .leaf-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .tree .leaf {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--gold-bright);
+    }
+
+    .vote {
+      margin-top: 6px;
+      color: var(--red);
+      font-size: 0.78rem;
+      font-weight: 900;
+      text-align: center;
+    }
+
+    .dag {
+      position: relative;
+      min-height: 245px;
+      padding: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      border-radius: 8px;
+      background: rgba(7, 11, 21, 0.38);
+    }
+
+    .dag-node {
+      position: absolute;
+      width: 145px;
+      padding: 12px;
+      border: 1px solid rgba(240, 192, 64, 0.32);
+      border-radius: 8px;
+      background: rgba(13, 21, 41, 0.94);
+      text-align: center;
+      font-size: 0.82rem;
+      font-weight: 800;
+    }
+
+    .dag-node:nth-child(1) { left: 4%; top: 26px; }
+    .dag-node:nth-child(2) { left: 31%; top: 88px; }
+    .dag-node:nth-child(3) { right: 24%; top: 34px; }
+    .dag-node:nth-child(4) { right: 4%; top: 112px; }
+
+    .dag-arrow {
+      position: absolute;
+      height: 2px;
+      background: var(--gold-bright);
+      transform-origin: left center;
+    }
+
+    .dag-arrow::after {
+      content: "";
+      position: absolute;
+      right: -1px;
+      top: -4px;
+      width: 0;
+      height: 0;
+      border-left: 8px solid var(--gold-bright);
+      border-top: 5px solid transparent;
+      border-bottom: 5px solid transparent;
+    }
+
+    .dag-label {
+      position: absolute;
+      color: var(--teal);
+      font-size: 0.72rem;
+      font-weight: 800;
+    }
+
+    .arrow-1 { width: 130px; left: 20%; top: 82px; transform: rotate(21deg); }
+    .arrow-2 { width: 128px; left: 47%; top: 103px; transform: rotate(-18deg); }
+    .arrow-3 { width: 116px; right: 13%; top: 102px; transform: rotate(28deg); }
+    .label-1 { left: 24%; top: 116px; }
+    .label-2 { left: 52%; top: 72px; }
+    .label-3 { right: 15%; top: 138px; }
+
+    .fusion {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr) 1.2fr;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .fusion-source,
+    .fusion-output {
+      min-height: 112px;
+      display: grid;
+      place-items: center;
+      padding: 16px;
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.03);
+      text-align: center;
+      font-weight: 800;
+    }
+
+    .fusion-output {
+      color: #06110f;
+      border-color: var(--teal);
+      background: var(--teal);
+      box-shadow: 0 0 35px rgba(0, 212, 184, 0.2);
+    }
+
+    .waterfall {
+      display: grid;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .waterfall-row {
+      display: grid;
+      grid-template-columns: minmax(150px, 210px) 1fr 74px;
+      align-items: center;
+      gap: 14px;
+      color: var(--text-secondary);
+      font-size: 0.94rem;
+    }
+
+    .waterfall-track {
+      height: 24px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(148, 163, 184, 0.12);
+    }
+
+    .waterfall-bar {
+      height: 100%;
+      width: var(--w);
+      border-radius: 999px;
+      background: var(--red);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 900ms ease;
+    }
+
+    .waterfall-bar.down {
+      background: var(--teal);
+    }
+
+    .reveal.visible .waterfall-bar {
+      transform: scaleX(1);
+    }
+
+    .causal-path {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      align-items: center;
+      margin-top: 18px;
+    }
+
+    .path-node {
+      min-height: 96px;
+      display: grid;
+      place-items: center;
+      padding: 14px;
+      border: 1px solid rgba(240, 192, 64, 0.28);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.03);
+      text-align: center;
+      font-weight: 800;
+      position: relative;
+    }
+
+    .path-node:not(:last-child)::after {
+      content: attr(data-effect);
+      position: absolute;
+      right: -35px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 1;
+      color: var(--teal);
+      font-size: 0.72rem;
+      font-weight: 900;
+      background: var(--bg-primary);
+      padding: 3px 5px;
+      border-radius: 999px;
+    }
+
+    .table-panel {
+      overflow: hidden;
+    }
+
+    .table-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 20px 22px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+    }
+
+    .table-head p {
+      margin: 6px 0 0;
+      color: var(--text-secondary);
+    }
+
+    .table-scroll {
+      overflow-x: auto;
+    }
+
+    .data-table,
+    .coefficient-table,
+    .scenario-table {
+      width: 100%;
+      min-width: 900px;
+      border-collapse: collapse;
+    }
+
+    .data-table tbody tr {
+      transition: background 180ms ease;
+    }
+
+    .data-table tbody tr:hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .data-table tbody tr.high-risk {
+      position: relative;
+      animation: pulse-red 2.2s ease-in-out infinite;
+    }
+
+    .data-table tbody tr.high-risk td:first-child {
+      border-left: 4px solid var(--red);
+    }
+
+    @keyframes pulse-red {
+      0%, 100% { box-shadow: inset 4px 0 0 rgba(230, 57, 70, 0.5); }
+      50% { box-shadow: inset 4px 0 0 rgba(230, 57, 70, 1); }
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--text-secondary);
+      font-size: 0.76rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    select,
+    input,
+    textarea {
+      width: 100%;
+      min-height: 44px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 8px;
+      color: var(--text-primary);
+      background: rgba(7, 11, 21, 0.68);
+      padding: 10px 12px;
+      font: inherit;
+      outline: none;
+    }
+
+    select:focus,
+    input:focus,
+    textarea:focus {
+      border-color: var(--gold-bright);
+      box-shadow: 0 0 0 3px rgba(240, 192, 64, 0.12);
+    }
+
+    .recommendation-card {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .strategy-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .stat-box {
+      padding: 12px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(148, 163, 184, 0.12);
+    }
+
+    .stat-box span {
+      display: block;
+      color: var(--text-secondary);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 800;
+    }
+
+    .stat-box strong {
+      display: block;
+      margin-top: 5px;
+      font-size: 1.18rem;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .timeline-row {
+      display: grid;
+      grid-template-columns: 130px 1fr;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .timeline-label {
+      color: var(--text-secondary);
+      font-weight: 800;
+    }
+
+    .timeline-bar {
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      border-radius: 8px;
+      background: rgba(148, 163, 184, 0.12);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      font-weight: 800;
+    }
+
+    .bar-week1 { width: 44%; background: rgba(230, 57, 70, 0.2); border-color: rgba(230, 57, 70, 0.4); }
+    .bar-week2 { width: 62%; background: rgba(244, 162, 97, 0.2); border-color: rgba(244, 162, 97, 0.4); }
+    .bar-month2 { width: 74%; background: rgba(0, 212, 184, 0.16); border-color: rgba(0, 212, 184, 0.34); }
+    .bar-ongoing { width: 100%; background: rgba(96, 165, 250, 0.16); border-color: rgba(96, 165, 250, 0.34); }
+
+    .simulator {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      align-items: center;
+    }
+
+    .slider-stack {
+      display: grid;
+      gap: 16px;
+    }
+
+    input[type="range"] {
+      padding: 0;
+      accent-color: var(--gold-bright);
+      min-height: 26px;
+    }
+
+    .sim-output {
+      min-height: 224px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      background: rgba(7, 11, 21, 0.52);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      text-align: center;
+    }
+
+    .sim-score {
+      font-size: clamp(3rem, 6vw, 6rem);
+      line-height: 1;
+      font-weight: 900;
+      color: var(--gold-bright);
+    }
+
+    .chat-widget {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 65;
+      width: min(390px, calc(100vw - 36px));
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: rgba(7, 11, 21, 0.96);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      backdrop-filter: blur(18px);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(12px);
+      transition: opacity 180ms ease, transform 180ms ease;
+    }
+
+    .chat-widget.available {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    .chat-widget.collapsed {
+      width: 58px;
+      height: 58px;
+    }
+
+    .chat-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+      cursor: pointer;
+    }
+
+    .chat-widget.collapsed .chat-header {
+      height: 58px;
+      justify-content: center;
+      padding: 0;
+      border-bottom: 0;
+    }
+
+    .chat-widget.collapsed .chat-header strong,
+    .chat-widget.collapsed .chat-header .badge {
+      display: none;
+    }
+
+    .chat-widget.collapsed .chat-header::before {
+      content: "AI";
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      color: #080d16;
+      background: var(--gold-bright);
+      font-weight: 900;
+    }
+
+    .chat-body {
+      display: grid;
+      gap: 12px;
+      padding: 14px;
+    }
+
+    .chat-widget.collapsed .chat-body {
+      display: none;
+    }
+
+    .chat-response {
+      min-height: 116px;
+      padding: 14px;
+      border-radius: 8px;
+      color: var(--text-secondary);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      font-size: 0.92rem;
+    }
+
+    .chat-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn {
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border: 1px solid rgba(240, 192, 64, 0.32);
+      border-radius: 8px;
+      color: #080d16;
+      background: var(--gold-bright);
+      padding: 10px 14px;
+      font-weight: 900;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 180ms ease, filter 180ms ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.04);
+    }
+
+    .btn.secondary {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(148, 163, 184, 0.18);
+    }
+
+    .memo {
+      padding: clamp(24px, 4vw, 44px);
+      border: 1px solid rgba(240, 192, 64, 0.34);
+      border-radius: 8px;
+      background: rgba(9, 13, 22, 0.9);
+      box-shadow: var(--shadow);
+    }
+
+    .memo-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .memo-label {
+      color: var(--gold-bright);
+      font-size: 0.78rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .memo-value {
+      margin-top: 6px;
+      color: var(--text-primary);
+      font-weight: 800;
+    }
+
+    .psi-gauge {
+      width: 180px;
+      height: 180px;
+      display: grid;
+      place-items: center;
+      margin: 10px auto 0;
+      border-radius: 50%;
+      background: conic-gradient(var(--teal) 0 64%, rgba(148, 163, 184, 0.16) 64% 100%);
+      position: relative;
+    }
+
+    .psi-gauge::before {
+      content: "";
+      position: absolute;
+      inset: 15px;
+      border-radius: 50%;
+      background: var(--bg-card);
+    }
+
+    .psi-gauge strong {
+      position: relative;
+      z-index: 1;
+      font-size: 2.2rem;
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 620ms ease, transform 620ms ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .print-actions {
+      position: fixed;
+      right: 18px;
+      top: 18px;
+      z-index: 64;
+      display: flex;
+      gap: 8px;
+    }
+
+    @media (max-width: 1180px) {
+      .grid-4,
+      .grid-3 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .fusion {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .controls {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 820px) {
+      .side-nav {
+        display: none;
+      }
+
+      .mobile-bar {
+        display: flex;
+      }
+
+      .story-shell {
+        margin-left: 0;
+      }
+
+      .chapter {
+        padding: 92px 16px 64px;
+      }
+
+      .grid-4,
+      .grid-3,
+      .grid-2,
+      .client-timeline,
+      .simulator,
+      .causal-path,
+      .memo-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .print-actions {
+        display: none;
+      }
+
+      .controls {
+        grid-template-columns: 1fr;
+      }
+
+      .timeline-row {
+        grid-template-columns: 1fr;
+      }
+
+      .timeline-bar {
+        width: 100%;
+      }
+
+      .chart-card {
+        min-height: 320px;
+      }
+
+      .chart-wrap,
+      .chart-wrap.tall {
+        height: 260px;
+      }
+
+      .dag {
+        min-height: 420px;
+      }
+
+      .dag-node {
+        left: 50% !important;
+        right: auto !important;
+        transform: translateX(-50%);
+      }
+
+      .dag-node:nth-child(1) { top: 22px; }
+      .dag-node:nth-child(2) { top: 122px; }
+      .dag-node:nth-child(3) { top: 222px; }
+      .dag-node:nth-child(4) { top: 322px; }
+
+      .dag-arrow,
+      .dag-label {
+        display: none;
+      }
+
+      .waterfall-row {
+        grid-template-columns: 1fr;
+        gap: 6px;
+      }
+
+      .chat-widget {
+        right: 12px;
+        bottom: 12px;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .mobile-menu {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .strategy-stats {
+        grid-template-columns: 1fr;
+      }
+
+      .fusion {
+        grid-template-columns: 1fr;
+      }
+
+      h1,
+      h2 {
+        font-size: clamp(2.35rem, 14vw, 4.2rem);
+      }
+    }
+
+    @media print {
+      body {
+        background: #fff;
+        color: #111827;
+      }
+
+      .side-nav,
+      .mobile-bar,
+      .mobile-menu,
+      .chat-widget,
+      .progress,
+      .print-actions,
+      #loading-screen {
+        display: none !important;
+      }
+
+      .story-shell {
+        margin: 0;
+      }
+
+      .chapter {
+        min-height: auto;
+        page-break-after: always;
+        padding: 40px 0;
+      }
+
+      .card,
+      .chart-card,
+      .briefing,
+      .callout,
+      .table-panel,
+      .control-panel,
+      .memo {
+        color: #111827;
+        background: #fff;
+        border-color: #cbd5e1;
+        box-shadow: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="loading-screen" aria-hidden="true">
+    <div class="loading-panel">
+      <p class="loading-title">Churn Intelligence</p>
+      <p class="loading-copy">Initialising the portfolio, model signals, and executive briefing.</p>
+      <div class="loading-track"><div class="loading-bar"></div></div>
+    </div>
+  </div>
+
+  <div class="progress" aria-hidden="true"><div id="progress-bar"></div></div>
+
+  <nav class="side-nav" aria-label="Chapter navigation">
+    <a href="#chapter1" data-target="chapter1">01</a>
+    <a href="#chapter2" data-target="chapter2">02</a>
+    <a href="#chapter3" data-target="chapter3">03</a>
+    <a href="#chapter4" data-target="chapter4">04</a>
+    <a href="#chapter5" data-target="chapter5">05</a>
+    <a href="#chapter6" data-target="chapter6">06</a>
+    <a href="#chapter7" data-target="chapter7">07</a>
+    <a href="#chapter8" data-target="chapter8">08</a>
+  </nav>
+
+  <header class="mobile-bar">
+    <div class="brand-mark"><span class="brand-dot"></span><span>Churn Intelligence</span></div>
+    <button class="icon-button" id="menu-toggle" aria-label="Open navigation"><span></span></button>
+  </header>
+
+  <nav class="mobile-menu" aria-label="Mobile chapter navigation">
+    <a href="#chapter1" data-target="chapter1">01</a>
+    <a href="#chapter2" data-target="chapter2">02</a>
+    <a href="#chapter3" data-target="chapter3">03</a>
+    <a href="#chapter4" data-target="chapter4">04</a>
+    <a href="#chapter5" data-target="chapter5">05</a>
+    <a href="#chapter6" data-target="chapter6">06</a>
+    <a href="#chapter7" data-target="chapter7">07</a>
+    <a href="#chapter8" data-target="chapter8">08</a>
+  </nav>
+
+  <div class="print-actions">
+    <button class="btn secondary" type="button" id="jump-watchlist">Watchlist</button>
+    <button class="btn" type="button" id="print-report">Export PDF</button>
+  </div>
+
+  <main class="story-shell">
+    <section class="chapter" id="chapter1">
+      <div class="chapter-inner">
+        <div class="chapter-kicker">Chapter 01 - The Wake-Up Call</div>
+        <h1>We Are Losing Customers - And It Is Costing Us More Than We Think</h1>
+        <p class="subhead">Before we talk about models, we need to face the book of business as it stands today.</p>
+
+        <div class="grid grid-4">
+          <article class="card kpi-card reveal">
+            <div class="kpi-icon">CR</div>
+            <div>
+              <div class="kpi-value" data-count="18.4" data-suffix="%" data-decimals="1">0%</div>
+              <div class="kpi-label">Annual Churn Rate</div>
+              <p class="kpi-note">Nearly 1 in 5 clients did not renew last year.</p>
+            </div>
+          </article>
+          <article class="card kpi-card reveal">
+            <div class="kpi-icon">KES</div>
+            <div>
+              <div class="kpi-value" data-count="47.2" data-prefix="KES " data-suffix="M" data-decimals="1">KES 0M</div>
+              <div class="kpi-label">Revenue Lost to Churn</div>
+              <p class="kpi-note">Policies that walked out the door in the last 12 months.</p>
+            </div>
+          </article>
+          <article class="card kpi-card reveal">
+            <div class="kpi-icon">6x</div>
+            <div>
+              <div class="kpi-value" data-count="38000" data-prefix="KES " data-format="number">KES 0</div>
+              <div class="kpi-label">Cost to Replace One Client</div>
+              <p class="kpi-note">Industry research shows acquisition can cost up to 6x more than retention.</p>
+            </div>
+          </article>
+          <article class="card kpi-card reveal">
+            <div class="kpi-icon">90D</div>
+            <div>
+              <div class="kpi-value" data-count="312" data-format="number">0</div>
+              <div class="kpi-label">Clients at High Risk Right Now</div>
+              <p class="kpi-note">312 out of 2,400 clients are predicted to leave within 90 days.</p>
+            </div>
+          </article>
+        </div>
+
+        <div class="grid grid-2" style="margin-top: 18px;">
+          <article class="chart-card reveal">
+            <h3>Industry Benchmark</h3>
+            <p class="insight">We are 4.2 percentage points above industry average. Closing this gap is worth KES 21M annually.</p>
+            <div class="chart-wrap short"><canvas id="benchmarkChart"></canvas><div class="chart-fallback">Benchmark chart unavailable.</div></div>
+          </article>
+          <article class="chart-card reveal">
+            <h3>Churn Timeline - Last 24 Months</h3>
+            <p class="insight">The danger zone starts above 15%. Two spikes line up with competitor pressure and premium increases.</p>
+            <div class="chart-wrap short"><canvas id="timelineChart"></canvas><div class="chart-fallback">Timeline chart unavailable.</div></div>
+          </article>
+        </div>
+
+        <div class="briefing reveal">
+          <p>Customer churn is not just an operational metric. It is a direct measure of trust. When a policyholder does not renew, they are telling us that a competitor offered more clarity, more value, or a simpler experience. This platform exists to ensure we are never again surprised by a departure we could have predicted and prevented.</p>
+        </div>
+
+        <div class="transition-line">But knowing we are losing clients is only half the story. The real question is: who, and why? &rarr; Continue to Chapter 2.</div>
+      </div>
+    </section>
+
+    <section class="chapter" id="chapter2">
+      <div class="chapter-inner">
+        <div class="chapter-kicker">Chapter 02 - Who Is Leaving?</div>
+        <h2>Mapping the Anatomy of a Churned Client</h2>
+        <p class="subhead">Not all churners look the same. Here is who is most likely to leave, and why that matters for the CEO.</p>
+
+        <div class="grid grid-3">
+          <article class="chart-card reveal">
+            <h3>By Policy Type</h3>
+            <p class="insight">Commercial clients churn most often because they shop aggressively at renewal and are sensitive to premium changes.</p>
+            <div class="chart-wrap short"><canvas id="policyChart"></canvas><div class="chart-fallback">Policy chart unavailable.</div></div>
+          </article>
+          <article class="chart-card reveal">
+            <h3>By Tenure Band</h3>
+            <p class="insight">New clients are 10x more likely to churn than decade-long relationships. The first 12 months are make-or-break.</p>
+            <div class="chart-wrap short"><canvas id="tenureChart"></canvas><div class="chart-fallback">Tenure chart unavailable.</div></div>
+          </article>
+          <article class="chart-card reveal">
+            <h3>By Age Group</h3>
+            <p class="insight">Younger clients are more price-sensitive and digitally active, making them easier to poach by insurtech competitors.</p>
+            <div class="chart-wrap short"><canvas id="ageChart"></canvas><div class="chart-fallback">Age chart unavailable.</div></div>
+          </article>
+        </div>
+
+        <p class="section-title">Client Personas</p>
+        <div class="grid grid-3">
+          <article class="card persona reveal">
+            <span class="avatar red">SW</span>
+            <div>
+              <h3>The Switcher</h3>
+              <p class="microcopy">28-42, motor or commercial policy, 1-2 years tenure, one missed payment, no after-sales contact.</p>
+              <p><span class="badge high">84% churn probability</span></p>
+            </div>
+          </article>
+          <article class="card persona reveal">
+            <span class="avatar amber">DR</span>
+            <div>
+              <h3>The Drifter</h3>
+              <p class="microcopy">35-55, life policy, 3-5 years tenure, one denied claim, engagement dropped after the claim.</p>
+              <p><span class="badge medium">62% churn probability</span></p>
+            </div>
+          </article>
+          <article class="card persona reveal">
+            <span class="avatar green">AN</span>
+            <div>
+              <h3>The Anchor</h3>
+              <p class="microcopy">50+, multiple policies, 8+ years, regular broker engagement, claims resolved successfully.</p>
+              <p><span class="badge low">11% churn probability</span></p>
+            </div>
+          </article>
+        </div>
+
+        <div class="table-panel reveal" style="margin-top: 18px;">
+          <div class="table-head">
+            <div>
+              <h3>Regional Heatmap</h3>
+              <p>Churn rate by region, colour-coded for field management focus.</p>
+            </div>
+          </div>
+          <div class="table-scroll">
+            <table class="heatmap">
+              <thead><tr><th>Region</th><th>Churn Rate</th><th>What it means</th></tr></thead>
+              <tbody>
+                <tr><td>Nairobi CBD</td><td class="heat-red">22%</td><td>Highest concentration of price shoppers and commercial renewals.</td></tr>
+                <tr><td>Westlands</td><td class="heat-amber">17%</td><td>High value, high competition, needs proactive premium reviews.</td></tr>
+                <tr><td>Mombasa</td><td class="heat-amber">16%</td><td>Transport and marine-linked clients react quickly to price moves.</td></tr>
+                <tr><td>Kisumu</td><td class="heat-amber">14%</td><td>Near benchmark, with risk concentrated in motor renewals.</td></tr>
+                <tr><td>Nakuru</td><td class="heat-green">11%</td><td>Stable book, anchored by multi-policy relationships.</td></tr>
+                <tr><td>Eldoret</td><td class="heat-green">9%</td><td>Best retention profile, strong broker-client continuity.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="transition-line">The patterns are clear, but churn does not appear without warning. It leaves signals months before renewal. &rarr; Continue to Chapter 3.</div>
+      </div>
+    </section>
+
+    <section class="chapter" id="chapter3">
+      <div class="chapter-inner">
+        <div class="chapter-kicker">Chapter 03 - The Signals We Were Missing</div>
+        <h2>Churn Does Not Happen Overnight - It Leaves Footprints</h2>
+        <p class="subhead">These behavioural and transactional signals predict departure up to 90 days in advance.</p>
+
+        <div class="grid grid-4" id="signal-grid">
+          <article class="card signal-card reveal" style="--strength: 92%;">
+            <span class="mini-icon">LP</span>
+            <h3>Late Premium Payments</h3>
+            <p class="microcopy">Clients who paid late 2+ times in the last policy cycle are 3.4x more likely to lapse.</p>
+            <div class="strength"><div class="strength-row"><span>Predictive strength</span><span>92%</span></div><div class="strength-track"><div class="strength-bar"></div></div></div>
+          </article>
+          <article class="card signal-card reveal" style="--strength: 78%;">
+            <span class="mini-icon">BC</span>
+            <h3>Zero Broker Contact in 60 Days</h3>
+            <p class="microcopy">Silent clients are disengaging clients, especially during renewal windows.</p>
+            <div class="strength"><div class="strength-row"><span>Predictive strength</span><span>78%</span></div><div class="strength-track"><div class="strength-bar"></div></div></div>
+          </article>
+          <article class="card signal-card reveal" style="--strength: 85%;">
+            <span class="mini-icon">CD</span>
+            <h3>Claim Denial</h3>
+            <p class="microcopy">A single denied claim increases churn probability by 41% when not followed by recovery contact.</p>
+            <div class="strength"><div class="strength-row"><span>Predictive strength</span><span>85%</span></div><div class="strength-track"><div class="strength-bar"></div></div></div>
+          </article>
+          <article class="card signal-card reveal" style="--strength: 88%;">
+            <span class="mini-icon">PI</span>
+            <h3>Premium Increase Above 15%</h3>
+            <p class="microcopy">Price-sensitive clients begin shopping alternatives immediately after a steep increase.</p>
+            <div class="strength"><div class="strength-row"><span>Predictive strength</span><span>88%</span></div><div class="strength-track"><div class="strength-bar"></div></div></div>
+          </article>
+          <article class="card signal-card reveal" style="--strength: 94%;">
+            <span class="mini-icon">CQ</span>
+            <h3>Competitor Quote Requested</h3>
+            <p class="microcopy">Clients who request external quotes convert to churn at a 67% rate without intervention.</p>
+            <div class="strength"><div class="strength-row"><span>Predictive strength</span><span>94%</span></div><div class="strength-track"><div class="strength-bar"></div></div></div>
+          </article>
+          <article class="card signal-card reveal" style="--strength: 71%;">
+            <span class="mini-icon">PD</span>
+            <h3>Policy Downgrade</h3>
+            <p class="microcopy">Reducing coverage is often a precursor to non-renewal, not a stable cost-saving move.</p>
+            <div class="strength"><div class="strength-row"><span>Predictive strength</span><span>71%</span></div><div class="strength-track"><div class="strength-bar"></div></div></div>
+          </article>
+          <article class="card signal-card reveal" style="--strength: 80%;">
+            <span class="mini-icon">NPS</span>
+            <h3>Low NPS Score Below 6</h3>
+            <p class="microcopy">Dissatisfied clients are 5x more likely to leave at renewal.</p>
+            <div class="strength"><div class="strength-row"><span>Predictive strength</span><span>80%</span></div><div class="strength-track"><div class="strength-bar"></div></div></div>
+          </article>
+          <article class="card signal-card reveal" style="--strength: 89%;">
+            <span class="mini-icon">RI</span>
+            <h3>Renewal Ignored for 30+ Days</h3>
+            <p class="microcopy">Non-responsive renewal windows have a 79% eventual lapse rate.</p>
+            <div class="strength"><div class="strength-row"><span>Predictive strength</span><span>89%</span></div><div class="strength-track"><div class="strength-bar"></div></div></div>
+          </article>
+        </div>
+
+        <div class="client-timeline" style="margin-top: 18px;">
+          <article class="chart-card reveal">
+            <h3>Signal Timeline - Client #2847, Wanjiku Muthoni</h3>
+            <p class="insight">Her engagement health score fell from 87 to 23. The model flagged her at Month 7, but no intervention was made.</p>
+            <div class="chart-wrap"><canvas id="signalTimelineChart"></canvas><div class="chart-fallback">Signal timeline unavailable.</div></div>
+          </article>
+          <article class="card reveal">
+            <h3>What We Missed</h3>
+            <div class="event-list" style="margin-top: 16px;">
+              <div class="event"><strong>Month 3:</strong> Claim denied, no recovery call.</div>
+              <div class="event"><strong>Month 5:</strong> Late premium payment.</div>
+              <div class="event"><strong>Month 7:</strong> No broker contact for 60 days. Model flags High Risk.</div>
+              <div class="event"><strong>Month 9:</strong> Premium increased by 18%.</div>
+              <div class="event"><strong>Month 11:</strong> Client lapses.</div>
+            </div>
+          </article>
+        </div>
+
+        <div class="callout reveal" style="margin-top: 18px;">
+          <p>The data is telling us a story every day. Our platform now reads that story in real time so our brokers can intervene before the chapter ends.</p>
+        </div>
+
+        <div class="transition-line">Once we can see the signals, the next question is how confidently we can predict the outcome. &rarr; Continue to Chapter 4.</div>
+      </div>
+    </section>
+
+    <section class="chapter" id="chapter4">
+      <div class="chapter-inner">
+        <div class="chapter-kicker">Chapter 04 - How We Predict Churn</div>
+        <h2>From Gut Feel to Mathematical Certainty</h2>
+        <p class="subhead">We use an ensemble of five complementary models. Each answers a different executive question.</p>
+
+        <div class="grid grid-2">
+          <article class="card model-card reveal">
+            <span class="badge low">Model 1</span>
+            <h3>Logistic Regression - The Baseline Truth Test</h3>
+            <p class="microcopy">We start simple. For each client, we calculate the probability of leaving based on payment history, tenure, policy type, and claim history. It gives us a clean, auditable score that executives and regulators can follow.</p>
+            <svg class="sigmoid-visual" viewBox="0 0 520 180" role="img" aria-label="Sigmoid probability curve">
+              <line x1="40" y1="140" x2="485" y2="140" stroke="rgba(148,163,184,0.32)" />
+              <line x1="40" y1="22" x2="40" y2="140" stroke="rgba(148,163,184,0.32)" />
+              <path d="M45 132 C130 130 165 122 210 95 C250 68 285 48 360 39 C410 33 450 31 485 30" fill="none" stroke="#00d4b8" stroke-width="4" />
+              <circle cx="118" cy="126" r="8" fill="#2dd4bf" /><text x="98" y="112" fill="#cbd5e1" font-size="13">0.12</text>
+              <circle cx="245" cy="76" r="8" fill="#f4a261" /><text x="225" y="62" fill="#cbd5e1" font-size="13">0.54</text>
+              <circle cx="425" cy="34" r="8" fill="#e63946" /><text x="405" y="22" fill="#cbd5e1" font-size="13">0.89</text>
+              <text x="205" y="165" fill="#94a3b8" font-size="13">Risk score</text>
+              <text x="8" y="26" fill="#94a3b8" font-size="13">Probability</text>
+            </svg>
+            <p class="microcopy"><strong>Key output:</strong> Baseline churn probability score per client.</p>
+            <div class="model-meta"><span class="metric-chip">Accuracy 79.3%</span><span class="metric-chip">AUC-ROC 0.81</span></div>
+          </article>
+
+          <article class="card model-card reveal">
+            <span class="badge low">Model 2</span>
+            <h3>Random Forest - The Pattern Hunter</h3>
+            <p class="microcopy">We train 500 decision trees on historical data, each learning slightly different patterns. The majority vote determines whether a client is at risk. This model caught the 2023 commercial policy exodus two months before it happened.</p>
+            <div class="forest" aria-label="Stylised decision forest">
+              <div class="tree"><div class="node"></div><div class="leaf-row"><span class="leaf"></span><span class="leaf"></span></div><div class="vote">STAY</div></div>
+              <div class="tree"><div class="node"></div><div class="leaf-row"><span class="leaf"></span><span class="leaf"></span></div><div class="vote">CHURN</div></div>
+              <div class="tree"><div class="node"></div><div class="leaf-row"><span class="leaf"></span><span class="leaf"></span></div><div class="vote">CHURN</div></div>
+              <div class="tree"><div class="node"></div><div class="leaf-row"><span class="leaf"></span><span class="leaf"></span></div><div class="vote">CHURN</div></div>
+              <div class="tree"><div class="node"></div><div class="leaf-row"><span class="leaf"></span><span class="leaf"></span></div><div class="vote">STAY</div></div>
+              <div class="tree"><div class="node"></div><div class="leaf-row"><span class="leaf"></span><span class="leaf"></span></div><div class="vote">CHURN</div></div>
+              <div class="tree"><div class="node"></div><div class="leaf-row"><span class="leaf"></span><span class="leaf"></span></div><div class="vote">CHURN</div></div>
+            </div>
+            <p class="microcopy"><strong>Key stat:</strong> Identified 88% of actual churners before they lapsed.</p>
+            <div class="model-meta"><span class="metric-chip">Accuracy 91.2%</span><span class="metric-chip">AUC-ROC 0.94</span></div>
+          </article>
+
+          <article class="card model-card reveal">
+            <span class="badge low">Model 3</span>
+            <h3>XGBoost - The Champion</h3>
+            <p class="microcopy">Our highest-performing model learns from its own mistakes. Each new tree fixes what the last one got wrong, which helps it handle messy real-world insurance data.</p>
+            <div class="chart-wrap short"><canvas id="modelAccuracyChart"></canvas><div class="chart-fallback">Model comparison unavailable.</div></div>
+            <p class="microcopy"><strong>Plain English:</strong> AUC-ROC is the model's ability to distinguish churners from stayers, where 0.5 is random and 1.0 is perfect.</p>
+            <div class="model-meta"><span class="metric-chip">Accuracy 94.1%</span><span class="metric-chip">AUC-ROC 0.97</span></div>
+          </article>
+
+          <article class="card model-card reveal">
+            <span class="badge low">Model 4</span>
+            <h3>Bayesian Network - The Causal Thinker</h3>
+            <p class="microcopy">This model does not just find correlations. It maps cause and effect: a premium increase causes shopping behaviour, which causes competitor quotes, which causes lapse.</p>
+            <div class="dag" aria-label="Bayesian causal graph">
+              <div class="dag-node">Premium Increase</div>
+              <div class="dag-node">Competitor Shopping</div>
+              <div class="dag-node">NPS Drop</div>
+              <div class="dag-node">Churn</div>
+              <span class="dag-arrow arrow-1"></span><span class="dag-label label-1">P=0.71</span>
+              <span class="dag-arrow arrow-2"></span><span class="dag-label label-2">P=0.64</span>
+              <span class="dag-arrow arrow-3"></span><span class="dag-label label-3">P=0.79</span>
+            </div>
+            <p class="microcopy"><strong>Bayesian stat:</strong> P(Churn given claim denied and premium increase) = 0.83.</p>
+            <div class="model-meta"><span class="metric-chip">Cause chain finder</span><span class="metric-chip">Trigger-level explanation</span></div>
+          </article>
+
+          <article class="card model-card reveal">
+            <span class="badge low">Model 5</span>
+            <h3>Survival Analysis - The Clock</h3>
+            <p class="microcopy">Rather than asking only "Will they churn?", this model asks "When will they churn?" It gives every client a survival curve over the next 30, 60, 90, and 180 days.</p>
+            <div class="chart-wrap short"><canvas id="survivalChart"></canvas><div class="chart-fallback">Survival curve unavailable.</div></div>
+            <p class="microcopy"><strong>Key value:</strong> We know who to call this week versus next month.</p>
+            <div class="model-meta"><span class="metric-chip">30/60/90 day timing</span><span class="metric-chip">Intervention clock</span></div>
+          </article>
+
+          <article class="card model-card reveal">
+            <span class="badge low">Ensemble</span>
+            <h3>Model Fusion - The Unified Churn Score</h3>
+            <p class="microcopy">No single model is perfect. Our ensemble combines interpretability, pattern power, causal reasoning, and timing intelligence into one unified churn score.</p>
+            <div class="fusion" aria-label="Model fusion diagram">
+              <div class="fusion-source">Logistic</div>
+              <div class="fusion-source">Forest</div>
+              <div class="fusion-source">XGBoost</div>
+              <div class="fusion-source">Bayesian</div>
+              <div class="fusion-source">Survival</div>
+              <div class="fusion-output">95.3% Final Accuracy</div>
+            </div>
+            <p class="microcopy">The ensemble is the score our brokers see: one number, backed by five lenses.</p>
+            <div class="model-meta"><span class="metric-chip">Accuracy 95.3%</span><span class="metric-chip">AUC-ROC 0.98</span></div>
+          </article>
+        </div>
+
+        <div class="transition-line">Prediction earns trust only when we can explain it. Every score needs a reason. &rarr; Continue to Chapter 5.</div>
+      </div>
+    </section>
+
+    <section class="chapter" id="chapter5">
+      <div class="chapter-inner">
+        <div class="chapter-kicker">Chapter 05 - Explainability</div>
+        <h2>We Can Show Our Work - Every Prediction Has a Reason</h2>
+        <p class="subhead">Using SHAP, or Shapley Additive Explanations, we can show exactly why a client is flagged.</p>
+
+        <div class="grid grid-2">
+          <article class="chart-card reveal">
+            <h3>Global Feature Importance</h3>
+            <p class="insight">The model is most influenced by payment behaviour and claim experience, not demographics. Retention is operational, not demographic.</p>
+            <div class="chart-wrap tall"><canvas id="shapChart"></canvas><div class="chart-fallback">SHAP chart unavailable.</div></div>
+          </article>
+
+          <article class="card reveal">
+            <h3>Client #1042 - James Omondi</h3>
+            <p class="microcopy">Baseline churn probability is 22%. Recent events push his score to 63%, which is medium-high risk.</p>
+            <div class="waterfall">
+              <div class="waterfall-row"><span>Baseline</span><div class="waterfall-track"><div class="waterfall-bar down" style="--w: 22%;"></div></div><strong>22%</strong></div>
+              <div class="waterfall-row"><span>Claim denied 45 days ago</span><div class="waterfall-track"><div class="waterfall-bar" style="--w: 18%;"></div></div><strong>+18%</strong></div>
+              <div class="waterfall-row"><span>Premium increased 22%</span><div class="waterfall-track"><div class="waterfall-bar" style="--w: 14%;"></div></div><strong>+14%</strong></div>
+              <div class="waterfall-row"><span>No broker contact in 73 days</span><div class="waterfall-track"><div class="waterfall-bar" style="--w: 11%;"></div></div><strong>+11%</strong></div>
+              <div class="waterfall-row"><span>Missed one payment</span><div class="waterfall-track"><div class="waterfall-bar" style="--w: 8%;"></div></div><strong>+8%</strong></div>
+              <div class="waterfall-row"><span>6 years tenure</span><div class="waterfall-track"><div class="waterfall-bar down" style="--w: 6%;"></div></div><strong>-6%</strong></div>
+              <div class="waterfall-row"><span>Holds 2 policies</span><div class="waterfall-track"><div class="waterfall-bar down" style="--w: 4%;"></div></div><strong>-4%</strong></div>
+              <div class="waterfall-row"><span>Final model score</span><div class="waterfall-track"><div class="waterfall-bar" style="--w: 63%;"></div></div><strong>63%</strong></div>
+            </div>
+            <p style="margin-top: 16px;"><span class="badge medium">Medium-high risk</span></p>
+          </article>
+        </div>
+
+        <div class="callout reveal" style="margin-top: 18px;">
+          <h3>Causality Versus Correlation</h3>
+          <p class="microcopy">Correlation tells us that clients with low NPS tend to churn. Causality tells us that a claim denial causes NPS to drop, which then causes churn. This distinction matters because it tells our brokers which problem to fix.</p>
+          <div class="causal-path">
+            <div class="path-node" data-effect="-31 NPS">Claim Denial</div>
+            <div class="path-node" data-effect="+44% intent">NPS Drop</div>
+            <div class="path-node" data-effect="+38% lapse">Non-Renewal Intent</div>
+            <div class="path-node">Churn</div>
+          </div>
+        </div>
+
+        <div class="table-panel reveal" style="margin-top: 18px;">
+          <div class="table-head">
+            <div>
+              <h3>Logistic Regression Coefficients</h3>
+              <p>Plain-English translation of the model weights executives can audit.</p>
+            </div>
+          </div>
+          <div class="table-scroll">
+            <table class="coefficient-table">
+              <thead><tr><th>Feature</th><th>Coefficient</th><th>Odds Ratio</th><th>Plain English</th></tr></thead>
+              <tbody>
+                <tr><td>Claim Denied</td><td>1.41</td><td>4.1x</td><td>Claim denial quadruples churn odds.</td></tr>
+                <tr><td>Premium +15%</td><td>1.18</td><td>3.3x</td><td>A big price hike triples churn odds.</td></tr>
+                <tr><td>Tenure per year</td><td>-0.22</td><td>0.80x</td><td>Each additional year reduces churn risk by 20%.</td></tr>
+                <tr><td>Multi-policy</td><td>-0.41</td><td>0.66x</td><td>Having 2+ policies cuts churn risk by 34%.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="transition-line">Now that we know the reasons, we can prioritise action by value and urgency. &rarr; Continue to Chapter 6.</div>
+      </div>
+    </section>
+
+    <section class="chapter" id="chapter6">
+      <div class="chapter-inner">
+        <div class="chapter-kicker">Chapter 06 - The Watchlist</div>
+        <h2>312 Clients Are at High Risk of Leaving in the Next 90 Days</h2>
+        <p class="subhead">Here is the prioritised retention list, sorted by revenue at risk and urgency.</p>
+
+        <div class="grid grid-2">
+          <article class="chart-card reveal">
+            <h3>Risk Distribution</h3>
+            <p class="insight">High-risk clients represent KES 18.4M of gross written premium at risk right now.</p>
+            <div class="chart-wrap short"><canvas id="riskDistributionChart"></canvas><div class="chart-fallback">Risk distribution unavailable.</div></div>
+          </article>
+          <article class="chart-card reveal">
+            <h3>Revenue at Risk Versus Churn Probability</h3>
+            <p class="insight">Priority 1 clients sit in the top-right: high value, high risk, and time-sensitive.</p>
+            <div class="chart-wrap short"><canvas id="scatterChart"></canvas><div class="chart-fallback">Scatter plot unavailable.</div></div>
+          </article>
+        </div>
+
+        <div class="control-panel reveal" style="margin-top: 18px;">
+          <h3>Filter the Watchlist</h3>
+          <p class="microcopy">The table updates instantly. Start with high-risk clients, then narrow by policy, region, or tenure.</p>
+          <div class="controls" style="margin-top: 16px;">
+            <label>Policy Type
+              <select id="filter-policy">
+                <option value="all">All policies</option>
+                <option>Motor</option>
+                <option>Life</option>
+                <option>Commercial</option>
+                <option>Health</option>
+                <option>WIBA</option>
+              </select>
+            </label>
+            <label>Risk Band
+              <select id="filter-risk">
+                <option value="all">All risk bands</option>
+                <option>High</option>
+                <option>Medium</option>
+                <option>Low</option>
+              </select>
+            </label>
+            <label>Region
+              <select id="filter-region">
+                <option value="all">All regions</option>
+                <option>Nairobi CBD</option>
+                <option>Westlands</option>
+                <option>Mombasa</option>
+                <option>Kisumu</option>
+                <option>Nakuru</option>
+                <option>Eldoret</option>
+              </select>
+            </label>
+            <label>Tenure
+              <select id="filter-tenure">
+                <option value="all">All tenure bands</option>
+                <option value="0-1">0-1 year</option>
+                <option value="1-3">1-3 years</option>
+                <option value="3-5">3-5 years</option>
+                <option value="5+">5+ years</option>
+              </select>
+            </label>
+            <label>Client Search
+              <input id="filter-search" type="search" placeholder="Search by name">
+            </label>
+          </div>
+        </div>
+
+        <div class="table-panel reveal" style="margin-top: 18px;">
+          <div class="table-head">
+            <div>
+              <h3>Top At-Risk Clients</h3>
+              <p id="table-count">Showing priority clients.</p>
+            </div>
+          </div>
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Client Name</th>
+                  <th>Policy Type</th>
+                  <th>Tenure</th>
+                  <th>Churn Score</th>
+                  <th>Primary Risk Signal</th>
+                  <th>Revenue at Risk</th>
+                  <th>Recommended Action</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="watchlist-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="transition-line">A prediction is only valuable if it changes what we do next. The model now recommends the playbook. &rarr; Continue to Chapter 7.</div>
+      </div>
+    </section>
+
+    <section class="chapter" id="chapter7">
+      <div class="chapter-inner">
+        <div class="chapter-kicker">Chapter 07 - What the Model Recommends</div>
+        <h2>Predictions Without Actions Are Just Numbers - Here Is the Playbook</h2>
+        <p class="subhead">AI-generated, broker-executable retention strategies, personalised by risk signal and segment.</p>
+
+        <div class="grid grid-4">
+          <article class="card recommendation-card reveal">
+            <span class="mini-icon">PR</span>
+            <h3>Personalised Premium Review</h3>
+            <p class="microcopy"><strong>Target:</strong> Clients with &gt;15% premium increase and &lt;3 years tenure.</p>
+            <p class="microcopy"><strong>Action:</strong> Schedule a 1:1 call, offer an 8-12% loyalty discount, and restructure cover to maintain value.</p>
+            <div class="strategy-stats">
+              <div class="stat-box"><span>Clients</span><strong>187</strong></div>
+              <div class="stat-box"><span>Lift</span><strong>+34%</strong></div>
+              <div class="stat-box"><span>Protected</span><strong>KES 8.2M</strong></div>
+            </div>
+          </article>
+          <article class="card recommendation-card reveal">
+            <span class="mini-icon">RE</span>
+            <h3>Re-Engagement Campaign</h3>
+            <p class="microcopy"><strong>Target:</strong> Clients with zero broker contact in 60+ days.</p>
+            <p class="microcopy"><strong>Action:</strong> Three-touch WhatsApp and email sequence: value reminder, policy review offer, renewal benefit.</p>
+            <div class="strategy-stats">
+              <div class="stat-box"><span>Clients</span><strong>243</strong></div>
+              <div class="stat-box"><span>Lift</span><strong>+22%</strong></div>
+              <div class="stat-box"><span>Protected</span><strong>KES 5.1M</strong></div>
+            </div>
+          </article>
+          <article class="card recommendation-card reveal">
+            <span class="mini-icon">CR</span>
+            <h3>Claims Experience Recovery</h3>
+            <p class="microcopy"><strong>Target:</strong> Clients with a denied or poorly resolved claim in the last 6 months.</p>
+            <p class="microcopy"><strong>Action:</strong> Senior broker review, claims advocacy support, and a complementary risk assessment.</p>
+            <div class="strategy-stats">
+              <div class="stat-box"><span>Clients</span><strong>98</strong></div>
+              <div class="stat-box"><span>Lift</span><strong>+41%</strong></div>
+              <div class="stat-box"><span>Protected</span><strong>KES 3.9M</strong></div>
+            </div>
+          </article>
+          <article class="card recommendation-card reveal">
+            <span class="mini-icon">MP</span>
+            <h3>Multi-Policy Bundling Offer</h3>
+            <p class="microcopy"><strong>Target:</strong> Single-policy medium-risk clients with eligible coverage gaps.</p>
+            <p class="microcopy"><strong>Action:</strong> Cross-sell motor plus life or health. Multi-policy holders churn 34% less.</p>
+            <div class="strategy-stats">
+              <div class="stat-box"><span>Clients</span><strong>312</strong></div>
+              <div class="stat-box"><span>Lift</span><strong>+28%</strong></div>
+              <div class="stat-box"><span>Protected</span><strong>KES 11.4M</strong></div>
+            </div>
+          </article>
+        </div>
+
+        <div class="grid grid-2" style="margin-top: 18px;">
+          <article class="chart-card reveal">
+            <h3>ROI Projection</h3>
+            <p class="insight">The full playbook costs KES 575,000 and protects KES 36M, a projected 62:1 return.</p>
+            <div class="chart-wrap short"><canvas id="roiChart"></canvas><div class="chart-fallback">ROI chart unavailable.</div></div>
+          </article>
+          <article class="card reveal">
+            <h3>Intervention Timeline</h3>
+            <p class="microcopy">The playbook sequences urgent calls first, then scaled campaigns, then bundling and continuous monitoring.</p>
+            <div class="timeline">
+              <div class="timeline-row"><div class="timeline-label">Week 1</div><div class="timeline-bar bar-week1">Urgent broker calls</div></div>
+              <div class="timeline-row"><div class="timeline-label">Week 2-3</div><div class="timeline-bar bar-week2">Re-engagement campaigns</div></div>
+              <div class="timeline-row"><div class="timeline-label">Month 2</div><div class="timeline-bar bar-month2">Bundling offers</div></div>
+              <div class="timeline-row"><div class="timeline-label">Ongoing</div><div class="timeline-bar bar-ongoing">Survival model monitoring</div></div>
+            </div>
+          </article>
+        </div>
+
+        <div class="control-panel reveal" style="margin-top: 18px;">
+          <h3>What-If Simulator</h3>
+          <p class="microcopy">Adjust operational levers and watch the churn probability update using a simplified scoring formula.</p>
+          <div class="simulator" style="margin-top: 18px;">
+            <div class="slider-stack">
+              <label>Premium Change <span id="premium-value">18%</span>
+                <input id="sim-premium" type="range" min="0" max="35" value="18">
+              </label>
+              <label>Days Since Broker Contact <span id="contact-value">72 days</span>
+                <input id="sim-contact" type="range" min="0" max="120" value="72">
+              </label>
+              <label>Claim Resolution Speed <span id="claim-value">18 days</span>
+                <input id="sim-claim" type="range" min="1" max="45" value="18">
+              </label>
+            </div>
+            <div class="sim-output">
+              <div>
+                <div class="sim-score" id="sim-score">64%</div>
+                <p class="microcopy" id="sim-copy">Medium-high risk. Broker intervention should happen this week.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="transition-line">The final question is what changes if we act. The answer is the north star for the next 12 months. &rarr; Continue to Chapter 8.</div>
+      </div>
+    </section>
+
+    <section class="chapter" id="chapter8">
+      <div class="chapter-inner">
+        <div class="chapter-kicker">Chapter 08 - The North Star</div>
+        <h2>If We Act on These Predictions, Here Is Our Future</h2>
+        <p class="subhead">A 12-month projection of churn rate, revenue retained, and client lifetime value under three scenarios.</p>
+
+        <div class="table-panel reveal">
+          <div class="table-head">
+            <div>
+              <h3>Scenario Comparison</h3>
+              <p>Three operating choices, three very different outcomes.</p>
+            </div>
+          </div>
+          <div class="table-scroll">
+            <table class="scenario-table">
+              <thead><tr><th>Metric</th><th>Do Nothing</th><th>Partial Action 50%</th><th>Full Action 100%</th></tr></thead>
+              <tbody>
+                <tr><td>Churn Rate Year End</td><td>21.2%</td><td>15.8%</td><td>10.4%</td></tr>
+                <tr><td>Revenue Lost</td><td>KES 58M</td><td>KES 38M</td><td>KES 22M</td></tr>
+                <tr><td>Revenue Protected</td><td>-</td><td>KES 20M</td><td>KES 36M</td></tr>
+                <tr><td>New CLV Average</td><td>KES 182K</td><td>KES 214K</td><td>KES 263K</td></tr>
+                <tr><td>NPS Score</td><td>31</td><td>44</td><td>61</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="grid grid-2" style="margin-top: 18px;">
+          <article class="chart-card reveal">
+            <h3>12-Month Churn Projection</h3>
+            <p class="insight">Full action bends churn toward top-quartile performance by year end.</p>
+            <div class="chart-wrap short"><canvas id="projectionChart"></canvas><div class="chart-fallback">Projection chart unavailable.</div></div>
+          </article>
+          <article class="chart-card reveal">
+            <h3>Customer Lifetime Value Upgrade</h3>
+            <p class="insight">The intervention plan improves tenure, referrals, NPS, premium growth, and claim efficiency.</p>
+            <div class="chart-wrap short"><canvas id="clvChart"></canvas><div class="chart-fallback">CLV chart unavailable.</div></div>
+          </article>
+        </div>
+
+        <div class="grid grid-2" style="margin-top: 18px;">
+          <article class="card reveal">
+            <h3>Model Performance Monitoring</h3>
+            <p class="microcopy">Model accuracy is reviewed monthly. If AUC-ROC drops below 0.88, automatic retraining is triggered using the last 18 months of data. Concept drift is monitored with PSI, or Population Stability Index, which tells us when incoming clients stop looking like the training data.</p>
+            <div class="psi-gauge" aria-label="Population stability index gauge"><strong>0.08</strong></div>
+            <p class="microcopy" style="text-align: center;">Stable. No retraining required this month.</p>
+          </article>
+          <article class="memo reveal">
+            <div class="memo-grid">
+              <div><div class="memo-label">To</div><div class="memo-value">The Chief Executive</div></div>
+              <div><div class="memo-label">From</div><div class="memo-value">Churn Intelligence Platform</div></div>
+              <div><div class="memo-label">Date</div><div class="memo-value" id="memo-date">June 2026</div></div>
+            </div>
+            <p>We currently lose 18.4% of our book of business annually, above industry average by 4.2 points. Our models have identified 312 clients who will leave within 90 days, representing KES 18.4M in gross written premium. The top drivers are claim denial, premium increases, and broker disengagement.</p>
+            <p>If we execute the four recommended strategies at full capacity, we project reducing annual churn to 10.4%, protecting KES 36M in revenue and improving average client lifetime value by 45%. The cost of full implementation is estimated at KES 575,000. The return is 62:1.</p>
+          </article>
+        </div>
+
+        <div class="transition-line">This is the operating rhythm: predict early, explain clearly, intervene personally, and protect trust before renewal.</div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="chat-widget collapsed" id="chat-widget" aria-label="AI recommendation assistant">
+    <div class="chat-header" id="chat-toggle">
+      <strong>Recommendation Assistant</strong>
+      <span class="badge low">Live</span>
+    </div>
+    <div class="chat-body">
+      <input type="search" id="chat-input" placeholder="Type a client name, e.g. Amina Hassan">
+      <div class="chat-actions">
+        <button class="btn" type="button" id="chat-submit">Get action</button>
+        <button class="btn secondary" type="button" id="chat-clear">Clear</button>
+      </div>
+      <div class="chat-response" id="chat-response">Open the assistant and type a watchlist client name to generate a broker-ready recommendation.</div>
+    </div>
+  </aside>
+
+  <script>
+    const PORTFOLIO = [
+      { id: 1001, name: "Amina Hassan", region: "Mombasa", age: 41, policyType: "Commercial", tenureYears: 2, premiumKES: 420000, churnScore: 91, riskBand: "High", claimDenied: false, daysSinceContact: 83, paymentsMissed: 1, npsScore: 4, multiPolicy: false, premiumChangePct: 28, primaryRiskSignal: "Premium +28%", recommendedAction: "Priority call within 48 hours with premium review and loyalty offer.", revenueAtRisk: 420000 },
+      { id: 1002, name: "David Kipchoge", region: "Eldoret", age: 33, policyType: "Motor", tenureYears: 1, premiumKES: 85000, churnScore: 87, riskBand: "High", claimDenied: true, daysSinceContact: 48, paymentsMissed: 1, npsScore: 3, multiPolicy: false, premiumChangePct: 12, primaryRiskSignal: "Claim denied", recommendedAction: "Claims review plus loyalty offer from senior broker.", revenueAtRisk: 85000 },
+      { id: 1003, name: "Grace Waweru", region: "Westlands", age: 46, policyType: "Health", tenureYears: 3, premiumKES: 210000, churnScore: 79, riskBand: "High", claimDenied: false, daysSinceContact: 96, paymentsMissed: 0, npsScore: 5, multiPolicy: true, premiumChangePct: 8, primaryRiskSignal: "No contact 90 days", recommendedAction: "Re-engagement campaign and benefits review.", revenueAtRisk: 210000 },
+      { id: 1004, name: "Peter Mwangi", region: "Nairobi CBD", age: 38, policyType: "Commercial", tenureYears: 2, premiumKES: 510000, churnScore: 89, riskBand: "High", claimDenied: false, daysSinceContact: 72, paymentsMissed: 2, npsScore: 5, multiPolicy: false, premiumChangePct: 21, primaryRiskSignal: "Late payments and premium +21%", recommendedAction: "Restructure payment plan and review cover.", revenueAtRisk: 510000 },
+      { id: 1005, name: "Faith Achieng", region: "Kisumu", age: 29, policyType: "Motor", tenureYears: 1, premiumKES: 94000, churnScore: 83, riskBand: "High", claimDenied: false, daysSinceContact: 66, paymentsMissed: 2, npsScore: 4, multiPolicy: false, premiumChangePct: 17, primaryRiskSignal: "Late premium payments", recommendedAction: "Renewal call plus monthly payment option.", revenueAtRisk: 94000 },
+      { id: 1006, name: "James Omondi", region: "Nairobi CBD", age: 49, policyType: "Commercial", tenureYears: 6, premiumKES: 360000, churnScore: 63, riskBand: "Medium", claimDenied: true, daysSinceContact: 73, paymentsMissed: 1, npsScore: 5, multiPolicy: true, premiumChangePct: 22, primaryRiskSignal: "Claim denied and premium +22%", recommendedAction: "Claims recovery call and renewal discount review.", revenueAtRisk: 360000 },
+      { id: 1007, name: "Sarah Njeri", region: "Westlands", age: 36, policyType: "Life", tenureYears: 4, premiumKES: 180000, churnScore: 72, riskBand: "High", claimDenied: true, daysSinceContact: 61, paymentsMissed: 0, npsScore: 4, multiPolicy: false, premiumChangePct: 9, primaryRiskSignal: "Claim denied", recommendedAction: "Senior broker apology call and policy value review.", revenueAtRisk: 180000 },
+      { id: 1008, name: "Joseph Otieno", region: "Kisumu", age: 52, policyType: "WIBA", tenureYears: 3, premiumKES: 290000, churnScore: 76, riskBand: "High", claimDenied: false, daysSinceContact: 88, paymentsMissed: 1, npsScore: 5, multiPolicy: false, premiumChangePct: 19, primaryRiskSignal: "Premium +19%", recommendedAction: "Employer cover review with retention pricing.", revenueAtRisk: 290000 },
+      { id: 1009, name: "Mary Chebet", region: "Eldoret", age: 31, policyType: "Motor", tenureYears: 1, premiumKES: 78000, churnScore: 81, riskBand: "High", claimDenied: false, daysSinceContact: 58, paymentsMissed: 2, npsScore: 4, multiPolicy: false, premiumChangePct: 16, primaryRiskSignal: "Missed payments", recommendedAction: "Payment rescue plan and broker check-in.", revenueAtRisk: 78000 },
+      { id: 1010, name: "Brian Karanja", region: "Nakuru", age: 44, policyType: "Health", tenureYears: 2, premiumKES: 240000, churnScore: 74, riskBand: "High", claimDenied: false, daysSinceContact: 81, paymentsMissed: 0, npsScore: 5, multiPolicy: false, premiumChangePct: 18, primaryRiskSignal: "No contact 80 days", recommendedAction: "Policy review and family health benefits reminder.", revenueAtRisk: 240000 },
+      { id: 1011, name: "Lydia Mutiso", region: "Nairobi CBD", age: 57, policyType: "Life", tenureYears: 7, premiumKES: 160000, churnScore: 37, riskBand: "Low", claimDenied: false, daysSinceContact: 30, paymentsMissed: 0, npsScore: 8, multiPolicy: true, premiumChangePct: 4, primaryRiskSignal: "Stable relationship", recommendedAction: "Maintain quarterly contact.", revenueAtRisk: 160000 },
+      { id: 1012, name: "Samuel Maina", region: "Westlands", age: 39, policyType: "Commercial", tenureYears: 3, premiumKES: 460000, churnScore: 68, riskBand: "Medium", claimDenied: false, daysSinceContact: 70, paymentsMissed: 0, npsScore: 6, multiPolicy: false, premiumChangePct: 15, primaryRiskSignal: "Premium +15%", recommendedAction: "Premium explanation and value audit.", revenueAtRisk: 460000 },
+      { id: 1013, name: "Esther Mumbi", region: "Nakuru", age: 28, policyType: "Motor", tenureYears: 1, premiumKES: 76000, churnScore: 66, riskBand: "Medium", claimDenied: false, daysSinceContact: 44, paymentsMissed: 1, npsScore: 6, multiPolicy: false, premiumChangePct: 14, primaryRiskSignal: "New client and late payment", recommendedAction: "First-year onboarding rescue call.", revenueAtRisk: 76000 },
+      { id: 1014, name: "Ali Barasa", region: "Mombasa", age: 47, policyType: "Commercial", tenureYears: 5, premiumKES: 620000, churnScore: 59, riskBand: "Medium", claimDenied: false, daysSinceContact: 55, paymentsMissed: 0, npsScore: 6, multiPolicy: true, premiumChangePct: 13, primaryRiskSignal: "Premium pressure", recommendedAction: "Coverage restructuring discussion.", revenueAtRisk: 620000 },
+      { id: 1015, name: "Mercy Atieno", region: "Kisumu", age: 35, policyType: "Health", tenureYears: 2, premiumKES: 190000, churnScore: 71, riskBand: "High", claimDenied: true, daysSinceContact: 59, paymentsMissed: 0, npsScore: 4, multiPolicy: false, premiumChangePct: 10, primaryRiskSignal: "Claim denied", recommendedAction: "Claims explanation and health cover review.", revenueAtRisk: 190000 },
+      { id: 1016, name: "Daniel Njuguna", region: "Nairobi CBD", age: 42, policyType: "WIBA", tenureYears: 2, premiumKES: 330000, churnScore: 77, riskBand: "High", claimDenied: false, daysSinceContact: 91, paymentsMissed: 1, npsScore: 5, multiPolicy: false, premiumChangePct: 20, primaryRiskSignal: "Renewal ignored", recommendedAction: "Executive renewal call within 72 hours.", revenueAtRisk: 330000 },
+      { id: 1017, name: "Caroline Wanjiru", region: "Westlands", age: 54, policyType: "Life", tenureYears: 9, premiumKES: 220000, churnScore: 24, riskBand: "Low", claimDenied: false, daysSinceContact: 24, paymentsMissed: 0, npsScore: 9, multiPolicy: true, premiumChangePct: 3, primaryRiskSignal: "Low risk", recommendedAction: "Invite to loyalty referral programme.", revenueAtRisk: 220000 },
+      { id: 1018, name: "Moses Odhiambo", region: "Mombasa", age: 30, policyType: "Motor", tenureYears: 1, premiumKES: 88000, churnScore: 69, riskBand: "Medium", claimDenied: false, daysSinceContact: 62, paymentsMissed: 1, npsScore: 6, multiPolicy: false, premiumChangePct: 15, primaryRiskSignal: "No broker contact", recommendedAction: "Renewal benefit call.", revenueAtRisk: 88000 },
+      { id: 1019, name: "Hannah Jepchirchir", region: "Eldoret", age: 45, policyType: "Health", tenureYears: 6, premiumKES: 260000, churnScore: 31, riskBand: "Low", claimDenied: false, daysSinceContact: 18, paymentsMissed: 0, npsScore: 8, multiPolicy: true, premiumChangePct: 5, primaryRiskSignal: "Stable relationship", recommendedAction: "Maintain annual review rhythm.", revenueAtRisk: 260000 },
+      { id: 1020, name: "Ibrahim Noor", region: "Nairobi CBD", age: 37, policyType: "Commercial", tenureYears: 2, premiumKES: 580000, churnScore: 82, riskBand: "High", claimDenied: false, daysSinceContact: 77, paymentsMissed: 1, npsScore: 5, multiPolicy: false, premiumChangePct: 24, primaryRiskSignal: "Competitor quote requested", recommendedAction: "Counter-offer and executive cover review.", revenueAtRisk: 580000 },
+      { id: 1021, name: "Rebecca Nyambura", region: "Nakuru", age: 34, policyType: "Life", tenureYears: 3, premiumKES: 145000, churnScore: 48, riskBand: "Medium", claimDenied: false, daysSinceContact: 51, paymentsMissed: 0, npsScore: 7, multiPolicy: false, premiumChangePct: 11, primaryRiskSignal: "Single policy", recommendedAction: "Bundling offer and beneficiary review.", revenueAtRisk: 145000 },
+      { id: 1022, name: "Victor Ochieng", region: "Kisumu", age: 40, policyType: "Motor", tenureYears: 4, premiumKES: 110000, churnScore: 43, riskBand: "Medium", claimDenied: false, daysSinceContact: 46, paymentsMissed: 0, npsScore: 7, multiPolicy: true, premiumChangePct: 9, primaryRiskSignal: "Moderate renewal engagement", recommendedAction: "Standard renewal reminder.", revenueAtRisk: 110000 },
+      { id: 1023, name: "Naomi Muthoni", region: "Westlands", age: 27, policyType: "Health", tenureYears: 1, premiumKES: 170000, churnScore: 64, riskBand: "Medium", claimDenied: false, daysSinceContact: 67, paymentsMissed: 1, npsScore: 6, multiPolicy: false, premiumChangePct: 14, primaryRiskSignal: "New client disengagement", recommendedAction: "Onboarding rescue and care-plan explanation.", revenueAtRisk: 170000 },
+      { id: 1024, name: "Kevin Kariuki", region: "Mombasa", age: 32, policyType: "Commercial", tenureYears: 1, premiumKES: 390000, churnScore: 86, riskBand: "High", claimDenied: false, daysSinceContact: 90, paymentsMissed: 2, npsScore: 4, multiPolicy: false, premiumChangePct: 23, primaryRiskSignal: "Premium +23% and late payments", recommendedAction: "Retention pricing and payment restructure.", revenueAtRisk: 390000 },
+      { id: 1025, name: "Diana Naliaka", region: "Eldoret", age: 51, policyType: "WIBA", tenureYears: 8, premiumKES: 310000, churnScore: 29, riskBand: "Low", claimDenied: false, daysSinceContact: 22, paymentsMissed: 0, npsScore: 8, multiPolicy: true, premiumChangePct: 6, primaryRiskSignal: "Low risk", recommendedAction: "Maintain service cadence.", revenueAtRisk: 310000 },
+      { id: 1026, name: "Patrick Kimani", region: "Nairobi CBD", age: 45, policyType: "Commercial", tenureYears: 4, premiumKES: 740000, churnScore: 73, riskBand: "High", claimDenied: false, daysSinceContact: 69, paymentsMissed: 0, npsScore: 6, multiPolicy: false, premiumChangePct: 18, primaryRiskSignal: "Premium +18%", recommendedAction: "Executive business review with alternatives.", revenueAtRisk: 740000 },
+      { id: 1027, name: "Rose Waithera", region: "Nakuru", age: 59, policyType: "Life", tenureYears: 11, premiumKES: 260000, churnScore: 18, riskBand: "Low", claimDenied: false, daysSinceContact: 15, paymentsMissed: 0, npsScore: 9, multiPolicy: true, premiumChangePct: 2, primaryRiskSignal: "Loyal multi-policy", recommendedAction: "Referral and loyalty appreciation.", revenueAtRisk: 260000 },
+      { id: 1028, name: "Edwin Mutua", region: "Westlands", age: 36, policyType: "Motor", tenureYears: 2, premiumKES: 115000, churnScore: 57, riskBand: "Medium", claimDenied: false, daysSinceContact: 56, paymentsMissed: 1, npsScore: 6, multiPolicy: false, premiumChangePct: 13, primaryRiskSignal: "Late payment", recommendedAction: "Payment schedule follow-up.", revenueAtRisk: 115000 },
+      { id: 1029, name: "Zainab Abdalla", region: "Mombasa", age: 43, policyType: "Health", tenureYears: 5, premiumKES: 280000, churnScore: 52, riskBand: "Medium", claimDenied: true, daysSinceContact: 38, paymentsMissed: 0, npsScore: 6, multiPolicy: true, premiumChangePct: 8, primaryRiskSignal: "Claim dissatisfaction", recommendedAction: "Claims advocacy follow-up.", revenueAtRisk: 280000 },
+      { id: 1030, name: "George Onyango", region: "Kisumu", age: 48, policyType: "Commercial", tenureYears: 7, premiumKES: 450000, churnScore: 36, riskBand: "Low", claimDenied: false, daysSinceContact: 33, paymentsMissed: 0, npsScore: 8, multiPolicy: true, premiumChangePct: 7, primaryRiskSignal: "Stable account", recommendedAction: "Quarterly strategic review.", revenueAtRisk: 450000 },
+      { id: 1031, name: "Agnes Wairimu", region: "Nairobi CBD", age: 26, policyType: "Motor", tenureYears: 1, premiumKES: 68000, churnScore: 62, riskBand: "Medium", claimDenied: false, daysSinceContact: 64, paymentsMissed: 1, npsScore: 6, multiPolicy: false, premiumChangePct: 12, primaryRiskSignal: "First-year silence", recommendedAction: "Digital renewal nudge and broker call.", revenueAtRisk: 68000 },
+      { id: 1032, name: "Simon Mburu", region: "Nakuru", age: 50, policyType: "WIBA", tenureYears: 4, premiumKES: 350000, churnScore: 46, riskBand: "Medium", claimDenied: false, daysSinceContact: 50, paymentsMissed: 0, npsScore: 7, multiPolicy: false, premiumChangePct: 10, primaryRiskSignal: "Single policy", recommendedAction: "Bundle employer cover review.", revenueAtRisk: 350000 },
+      { id: 1033, name: "Janet Akoth", region: "Eldoret", age: 39, policyType: "Health", tenureYears: 3, premiumKES: 205000, churnScore: 41, riskBand: "Medium", claimDenied: false, daysSinceContact: 43, paymentsMissed: 0, npsScore: 7, multiPolicy: true, premiumChangePct: 9, primaryRiskSignal: "Moderate engagement", recommendedAction: "Benefits reminder.", revenueAtRisk: 205000 },
+      { id: 1034, name: "Richard Githinji", region: "Westlands", age: 55, policyType: "Life", tenureYears: 12, premiumKES: 300000, churnScore: 15, riskBand: "Low", claimDenied: false, daysSinceContact: 12, paymentsMissed: 0, npsScore: 9, multiPolicy: true, premiumChangePct: 2, primaryRiskSignal: "Loyal relationship", recommendedAction: "Maintain advisory cadence.", revenueAtRisk: 300000 },
+      { id: 1035, name: "Purity Nyokabi", region: "Nairobi CBD", age: 30, policyType: "Commercial", tenureYears: 1, premiumKES: 410000, churnScore: 85, riskBand: "High", claimDenied: false, daysSinceContact: 94, paymentsMissed: 1, npsScore: 4, multiPolicy: false, premiumChangePct: 26, primaryRiskSignal: "Premium +26%", recommendedAction: "Urgent price and cover restructuring.", revenueAtRisk: 410000 },
+      { id: 1036, name: "Hassan Yusuf", region: "Mombasa", age: 46, policyType: "Commercial", tenureYears: 6, premiumKES: 660000, churnScore: 58, riskBand: "Medium", claimDenied: false, daysSinceContact: 54, paymentsMissed: 0, npsScore: 7, multiPolicy: true, premiumChangePct: 14, primaryRiskSignal: "Premium pressure", recommendedAction: "Value justification meeting.", revenueAtRisk: 660000 },
+      { id: 1037, name: "Beatrice Moraa", region: "Kisumu", age: 62, policyType: "Health", tenureYears: 10, premiumKES: 245000, churnScore: 21, riskBand: "Low", claimDenied: false, daysSinceContact: 20, paymentsMissed: 0, npsScore: 8, multiPolicy: true, premiumChangePct: 3, primaryRiskSignal: "Stable relationship", recommendedAction: "Maintain annual review.", revenueAtRisk: 245000 },
+      { id: 1038, name: "Nelson Korir", region: "Eldoret", age: 35, policyType: "Motor", tenureYears: 2, premiumKES: 92000, churnScore: 55, riskBand: "Medium", claimDenied: false, daysSinceContact: 49, paymentsMissed: 1, npsScore: 6, multiPolicy: false, premiumChangePct: 11, primaryRiskSignal: "Late payment", recommendedAction: "Payment reminder and loyalty benefit.", revenueAtRisk: 92000 },
+      { id: 1039, name: "Lucy Mokeira", region: "Nakuru", age: 41, policyType: "Life", tenureYears: 5, premiumKES: 175000, churnScore: 33, riskBand: "Low", claimDenied: false, daysSinceContact: 29, paymentsMissed: 0, npsScore: 8, multiPolicy: true, premiumChangePct: 6, primaryRiskSignal: "Stable account", recommendedAction: "Maintain quarterly check-in.", revenueAtRisk: 175000 },
+      { id: 1040, name: "Francis Were", region: "Nairobi CBD", age: 34, policyType: "WIBA", tenureYears: 1, premiumKES: 275000, churnScore: 78, riskBand: "High", claimDenied: false, daysSinceContact: 82, paymentsMissed: 2, npsScore: 5, multiPolicy: false, premiumChangePct: 19, primaryRiskSignal: "Renewal ignored", recommendedAction: "Urgent employer renewal call.", revenueAtRisk: 275000 },
+      { id: 1041, name: "Eunice Njoki", region: "Westlands", age: 58, policyType: "Health", tenureYears: 8, premiumKES: 230000, churnScore: 27, riskBand: "Low", claimDenied: false, daysSinceContact: 19, paymentsMissed: 0, npsScore: 9, multiPolicy: true, premiumChangePct: 4, primaryRiskSignal: "Low risk", recommendedAction: "Loyalty appreciation.", revenueAtRisk: 230000 },
+      { id: 1042, name: "Martin Okello", region: "Mombasa", age: 31, policyType: "Motor", tenureYears: 1, premiumKES: 97000, churnScore: 70, riskBand: "Medium", claimDenied: true, daysSinceContact: 42, paymentsMissed: 0, npsScore: 5, multiPolicy: false, premiumChangePct: 9, primaryRiskSignal: "Claim denied", recommendedAction: "Claims recovery and retention call.", revenueAtRisk: 97000 },
+      { id: 1043, name: "Stella Kamau", region: "Nairobi CBD", age: 44, policyType: "Commercial", tenureYears: 3, premiumKES: 520000, churnScore: 75, riskBand: "High", claimDenied: false, daysSinceContact: 86, paymentsMissed: 1, npsScore: 5, multiPolicy: false, premiumChangePct: 18, primaryRiskSignal: "No broker contact", recommendedAction: "Priority account review.", revenueAtRisk: 520000 },
+      { id: 1044, name: "Pauline Adhiambo", region: "Kisumu", age: 37, policyType: "Life", tenureYears: 4, premiumKES: 155000, churnScore: 45, riskBand: "Medium", claimDenied: false, daysSinceContact: 52, paymentsMissed: 0, npsScore: 7, multiPolicy: false, premiumChangePct: 10, primaryRiskSignal: "Single policy", recommendedAction: "Bundling and beneficiary review.", revenueAtRisk: 155000 },
+      { id: 1045, name: "Eric Macharia", region: "Nakuru", age: 29, policyType: "Motor", tenureYears: 1, premiumKES: 83000, churnScore: 65, riskBand: "Medium", claimDenied: false, daysSinceContact: 60, paymentsMissed: 1, npsScore: 6, multiPolicy: false, premiumChangePct: 13, primaryRiskSignal: "No contact 60 days", recommendedAction: "Quick renewal check-in.", revenueAtRisk: 83000 },
+      { id: 1046, name: "Miriam Wambui", region: "Westlands", age: 53, policyType: "Commercial", tenureYears: 9, premiumKES: 710000, churnScore: 39, riskBand: "Low", claimDenied: false, daysSinceContact: 27, paymentsMissed: 0, npsScore: 8, multiPolicy: true, premiumChangePct: 7, primaryRiskSignal: "Stable account", recommendedAction: "Annual executive review.", revenueAtRisk: 710000 },
+      { id: 1047, name: "Benard Langat", region: "Eldoret", age: 48, policyType: "WIBA", tenureYears: 6, premiumKES: 340000, churnScore: 35, riskBand: "Low", claimDenied: false, daysSinceContact: 32, paymentsMissed: 0, npsScore: 8, multiPolicy: true, premiumChangePct: 5, primaryRiskSignal: "Stable account", recommendedAction: "Maintain renewal rhythm.", revenueAtRisk: 340000 },
+      { id: 1048, name: "Nadia Said", region: "Mombasa", age: 26, policyType: "Health", tenureYears: 1, premiumKES: 185000, churnScore: 67, riskBand: "Medium", claimDenied: false, daysSinceContact: 71, paymentsMissed: 1, npsScore: 6, multiPolicy: false, premiumChangePct: 12, primaryRiskSignal: "New client disengagement", recommendedAction: "Care navigation and renewal benefit.", revenueAtRisk: 185000 },
+      { id: 1049, name: "Oscar Nyaga", region: "Nairobi CBD", age: 43, policyType: "Commercial", tenureYears: 2, premiumKES: 495000, churnScore: 80, riskBand: "High", claimDenied: false, daysSinceContact: 87, paymentsMissed: 1, npsScore: 5, multiPolicy: false, premiumChangePct: 20, primaryRiskSignal: "Competitor quote requested", recommendedAction: "Executive counter-offer within 48 hours.", revenueAtRisk: 495000 },
+      { id: 1050, name: "Teresa Anyango", region: "Kisumu", age: 60, policyType: "Life", tenureYears: 13, premiumKES: 270000, churnScore: 12, riskBand: "Low", claimDenied: false, daysSinceContact: 14, paymentsMissed: 0, npsScore: 9, multiPolicy: true, premiumChangePct: 2, primaryRiskSignal: "Loyal multi-policy", recommendedAction: "Referral request and appreciation call.", revenueAtRisk: 270000 }
+    ];
+
+    const COLORS = {
+      gold: "#c9a84c",
+      goldBright: "#f0c040",
+      teal: "#00d4b8",
+      red: "#e63946",
+      amber: "#f4a261",
+      green: "#2dd4bf",
+      blue: "#60a5fa",
+      purple: "#a78bfa",
+      grid: "rgba(255,255,255,0.08)",
+      tick: "#94a3b8",
+      text: "#cbd5e1"
+    };
+
+    const money = new Intl.NumberFormat("en-KE", { maximumFractionDigits: 0 });
+    const monthFormatter = new Intl.DateTimeFormat("en-KE", { month: "long", year: "numeric" });
+
+    function formatKES(value) {
+      return `KES ${money.format(value)}`;
+    }
+
+    function tenureBand(years) {
+      if (years <= 1) return "0-1";
+      if (years <= 3) return "1-3";
+      if (years <= 5) return "3-5";
+      return "5+";
+    }
+
+    function chartBaseOptions(extra = {}) {
+      return {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 1200, easing: "easeInOutQuart" },
+        plugins: {
+          legend: { labels: { color: COLORS.text, font: { family: "DM Sans" } } },
+          tooltip: {
+            backgroundColor: "rgba(7,11,21,0.94)",
+            borderColor: "rgba(201,168,76,0.35)",
+            borderWidth: 1,
+            titleColor: COLORS.goldBright,
+            bodyColor: "#f1f5f9"
+          }
+        },
+        scales: {
+          x: { grid: { color: COLORS.grid }, ticks: { color: COLORS.tick } },
+          y: { grid: { color: COLORS.grid }, ticks: { color: COLORS.tick } }
+        },
+        ...extra
+      };
+    }
+
+    function createCharts() {
+      if (!window.Chart) {
+        document.querySelectorAll(".chart-fallback").forEach((el) => { el.style.display = "grid"; });
+        return;
+      }
+
+      Chart.defaults.font.family = "DM Sans";
+      Chart.defaults.color = COLORS.text;
+
+      const dangerBand = {
+        id: "dangerBand",
+        beforeDatasetsDraw(chart, args, opts) {
+          if (!opts || !opts.enabled) return;
+          const { ctx, chartArea, scales } = chart;
+          if (!chartArea || !scales.y) return;
+          const yTop = scales.y.getPixelForValue(opts.to);
+          const yBottom = scales.y.getPixelForValue(opts.from);
+          ctx.save();
+          ctx.fillStyle = "rgba(230,57,70,0.08)";
+          ctx.fillRect(chartArea.left, yTop, chartArea.right - chartArea.left, yBottom - yTop);
+          ctx.restore();
+        }
+      };
+
+      const bestPracticeLine = {
+        id: "bestPracticeLine",
+        afterDatasetsDraw(chart, args, opts) {
+          if (!opts || !opts.value) return;
+          const { ctx, chartArea, scales } = chart;
+          const y = scales.y.getPixelForValue(opts.value);
+          ctx.save();
+          ctx.setLineDash([6, 6]);
+          ctx.strokeStyle = COLORS.goldBright;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(chartArea.left, y);
+          ctx.lineTo(chartArea.right, y);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = COLORS.goldBright;
+          ctx.fillText(opts.label || "Best practice", chartArea.left + 6, y - 8);
+          ctx.restore();
+        }
+      };
+
+      Chart.register(dangerBand, bestPracticeLine);
+
+      new Chart(document.getElementById("benchmarkChart"), {
+        type: "bar",
+        data: {
+          labels: ["Our brokerage", "Industry average", "Top quartile"],
+          datasets: [{ data: [18.4, 14.2, 9.1], backgroundColor: [COLORS.red, "rgba(148,163,184,0.48)", COLORS.teal], borderRadius: 8 }]
+        },
+        options: chartBaseOptions({
+          indexAxis: "y",
+          plugins: { ...chartBaseOptions().plugins, legend: { display: false } },
+          scales: { x: { max: 24, grid: { color: COLORS.grid }, ticks: { color: COLORS.tick, callback: (v) => `${v}%` } }, y: { grid: { display: false }, ticks: { color: COLORS.text } } }
+        })
+      });
+
+      new Chart(document.getElementById("timelineChart"), {
+        type: "line",
+        data: {
+          labels: Array.from({ length: 24 }, (_, i) => `M${i + 1}`),
+          datasets: [{
+            label: "Monthly churn rate",
+            data: [12.4, 12.9, 13.6, 14.2, 13.8, 14.8, 15.1, 18.7, 16.1, 15.6, 14.9, 15.4, 16.3, 19.2, 17.4, 16.8, 15.9, 16.2, 17.1, 17.5, 18.1, 18.4, 18.0, 18.4],
+            borderColor: COLORS.red,
+            backgroundColor: "rgba(230,57,70,0.14)",
+            fill: true,
+            tension: 0.36,
+            pointRadius: (ctx) => [7, 13].includes(ctx.dataIndex) ? 5 : 2,
+            pointBackgroundColor: (ctx) => [7, 13].includes(ctx.dataIndex) ? COLORS.goldBright : COLORS.red
+          }]
+        },
+        options: chartBaseOptions({
+          plugins: { ...chartBaseOptions().plugins, legend: { display: false }, dangerBand: { enabled: true, from: 15, to: 22 } },
+          scales: { x: { grid: { color: COLORS.grid }, ticks: { color: COLORS.tick, maxRotation: 0, autoSkip: true } }, y: { min: 8, max: 22, grid: { color: COLORS.grid }, ticks: { color: COLORS.tick, callback: (v) => `${v}%` } } }
+        })
+      });
+
+      new Chart(document.getElementById("policyChart"), {
+        type: "doughnut",
+        data: {
+          labels: ["Motor", "Life", "Commercial", "Health"],
+          datasets: [{ data: [34, 21, 28, 17], backgroundColor: [COLORS.goldBright, COLORS.blue, COLORS.red, COLORS.teal], borderColor: "#0a0f1e", borderWidth: 4 }]
+        },
+        options: chartBaseOptions({ cutout: "62%", scales: {} })
+      });
+
+      new Chart(document.getElementById("tenureChart"), {
+        type: "bar",
+        data: {
+          labels: ["0-1", "1-3", "3-5", "5-10", "10+"],
+          datasets: [{ label: "Churn rate", data: [31, 19, 12, 7, 3], backgroundColor: [COLORS.red, COLORS.amber, COLORS.gold, COLORS.teal, COLORS.green], borderRadius: 8 }]
+        },
+        options: chartBaseOptions({ plugins: { ...chartBaseOptions().plugins, legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { color: COLORS.tick } }, y: { max: 34, grid: { color: COLORS.grid }, ticks: { color: COLORS.tick, callback: (v) => `${v}%` } } } })
+      });
+
+      new Chart(document.getElementById("ageChart"), {
+        type: "bar",
+        data: {
+          labels: ["18-30", "31-45", "46-60", "60+"],
+          datasets: [{ data: [26, 18, 11, 8], backgroundColor: [COLORS.red, COLORS.amber, COLORS.teal, COLORS.green], borderRadius: 8 }]
+        },
+        options: chartBaseOptions({ indexAxis: "y", plugins: { ...chartBaseOptions().plugins, legend: { display: false } }, scales: { x: { max: 30, grid: { color: COLORS.grid }, ticks: { color: COLORS.tick, callback: (v) => `${v}%` } }, y: { grid: { display: false }, ticks: { color: COLORS.tick } } } })
+      });
+
+      new Chart(document.getElementById("signalTimelineChart"), {
+        type: "line",
+        data: {
+          labels: ["M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9", "M10", "M11", "M12"],
+          datasets: [{
+            label: "Engagement health score",
+            data: [87, 84, 69, 65, 56, 49, 37, 33, 26, 25, 23, 24],
+            borderColor: COLORS.teal,
+            backgroundColor: "rgba(0,212,184,0.14)",
+            fill: true,
+            tension: 0.35,
+            pointRadius: (ctx) => [2, 4, 6, 8, 10].includes(ctx.dataIndex) ? 5 : 2,
+            pointBackgroundColor: (ctx) => [2, 4, 6, 8, 10].includes(ctx.dataIndex) ? COLORS.red : COLORS.teal
+          }]
+        },
+        options: chartBaseOptions({ plugins: { ...chartBaseOptions().plugins, legend: { display: false } }, scales: { x: { grid: { color: COLORS.grid }, ticks: { color: COLORS.tick } }, y: { min: 0, max: 100, grid: { color: COLORS.grid }, ticks: { color: COLORS.tick } } } })
+      });
+
+      new Chart(document.getElementById("modelAccuracyChart"), {
+        type: "bar",
+        data: {
+          labels: ["Logistic", "Forest", "XGBoost", "Neural Net", "Ensemble"],
+          datasets: [{ label: "Accuracy", data: [79, 91, 94, 92, 95], backgroundColor: [COLORS.blue, COLORS.teal, COLORS.goldBright, COLORS.purple, COLORS.red], borderRadius: 8 }]
+        },
+        options: chartBaseOptions({ plugins: { ...chartBaseOptions().plugins, legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { color: COLORS.tick } }, y: { min: 70, max: 100, grid: { color: COLORS.grid }, ticks: { color: COLORS.tick, callback: (v) => `${v}%` } } } })
+      });
+
+      new Chart(document.getElementById("survivalChart"), {
+        type: "line",
+        data: {
+          labels: ["Day 0", "30", "60", "90", "180"],
+          datasets: [
+            { label: "High risk", data: [100, 68, 40, 31, 18], borderColor: COLORS.red, backgroundColor: "rgba(230,57,70,0.08)", tension: 0.32 },
+            { label: "Medium risk", data: [100, 88, 78, 72, 61], borderColor: COLORS.amber, backgroundColor: "rgba(244,162,97,0.08)", tension: 0.32 },
+            { label: "Low risk", data: [100, 98, 96, 94, 91], borderColor: COLORS.teal, backgroundColor: "rgba(0,212,184,0.08)", tension: 0.32 }
+          ]
+        },
+        options: chartBaseOptions({ scales: { x: { grid: { color: COLORS.grid }, ticks: { color: COLORS.tick } }, y: { min: 0, max: 100, grid: { color: COLORS.grid }, ticks: { color: COLORS.tick, callback: (v) => `${v}%` } } } })
+      });
+
+      new Chart(document.getElementById("shapChart"), {
+        type: "bar",
+        data: {
+          labels: ["Days since payment contact", "Premium increase %", "Claim denial", "Client tenure", "Policies held", "NPS score", "Broker interaction", "Policy type", "Missed payments", "Age"],
+          datasets: [{ label: "Mean |SHAP value|", data: [0.34, 0.29, 0.27, 0.24, 0.21, 0.19, 0.17, 0.15, 0.14, 0.09], backgroundColor: [COLORS.red, COLORS.amber, COLORS.red, COLORS.gold, COLORS.teal, COLORS.blue, COLORS.purple, COLORS.goldBright, COLORS.amber, "rgba(148,163,184,0.55)"], borderRadius: 8 }]
+        },
+        options: chartBaseOptions({ indexAxis: "y", plugins: { ...chartBaseOptions().plugins, legend: { display: false } }, scales: { x: { max: 0.38, grid: { color: COLORS.grid }, ticks: { color: COLORS.tick } }, y: { grid: { display: false }, ticks: { color: COLORS.tick } } } })
+      });
+
+      new Chart(document.getElementById("riskDistributionChart"), {
+        type: "doughnut",
+        data: {
+          labels: ["High risk: 312 clients", "Medium risk: 587 clients", "Low risk: 1,501 clients"],
+          datasets: [{ data: [312, 587, 1501], backgroundColor: [COLORS.red, COLORS.amber, COLORS.teal], borderColor: "#0a0f1e", borderWidth: 4 }]
+        },
+        options: chartBaseOptions({ cutout: "58%", scales: {} })
+      });
+
+      const pointStyle = PORTFOLIO.map((client) => ({
+        x: Math.round(client.revenueAtRisk / 1000),
+        y: client.churnScore,
+        client
+      }));
+
+      new Chart(document.getElementById("scatterChart"), {
+        type: "scatter",
+        data: {
+          datasets: [{
+            label: "Clients",
+            data: pointStyle,
+            parsing: false,
+            pointRadius: (ctx) => ctx.raw.client.multiPolicy ? 7 : 5,
+            pointHoverRadius: 9,
+            backgroundColor: (ctx) => {
+              const score = ctx.raw.client.churnScore;
+              if (score > 70) return COLORS.red;
+              if (score >= 40) return COLORS.amber;
+              return COLORS.teal;
+            }
+          }]
+        },
+        options: chartBaseOptions({
+          plugins: {
+            ...chartBaseOptions().plugins,
+            legend: { display: false },
+            tooltip: {
+              ...chartBaseOptions().plugins.tooltip,
+              callbacks: {
+                label: (ctx) => `${ctx.raw.client.name}: ${ctx.raw.y}% risk, KES ${ctx.raw.x}K`
+              }
+            }
+          },
+          scales: {
+            x: { title: { display: true, text: "Revenue at risk (KES thousands)", color: COLORS.tick }, grid: { color: COLORS.grid }, ticks: { color: COLORS.tick } },
+            y: { min: 0, max: 100, title: { display: true, text: "Churn probability", color: COLORS.tick }, grid: { color: COLORS.grid }, ticks: { color: COLORS.tick, callback: (v) => `${v}%` } }
+          }
+        })
+      });
+
+      new Chart(document.getElementById("roiChart"), {
+        type: "bar",
+        data: {
+          labels: ["Premium review", "Re-engagement", "Claims recovery", "Bundling"],
+          datasets: [
+            { label: "Revenue protected (KES M)", data: [8.2, 5.1, 3.9, 11.4], backgroundColor: COLORS.teal, borderRadius: 8 },
+            { label: "Campaign cost (KES M)", data: [0.18, 0.095, 0.06, 0.24], backgroundColor: COLORS.goldBright, borderRadius: 8 }
+          ]
+        },
+        options: chartBaseOptions({ scales: { x: { grid: { display: false }, ticks: { color: COLORS.tick } }, y: { grid: { color: COLORS.grid }, ticks: { color: COLORS.tick, callback: (v) => `${v}M` } } } })
+      });
+
+      new Chart(document.getElementById("projectionChart"), {
+        type: "line",
+        data: {
+          labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+          datasets: [
+            { label: "Do nothing", data: [18.4, 18.7, 19.0, 19.3, 19.7, 20.0, 20.3, 20.5, 20.7, 20.9, 21.1, 21.2], borderColor: COLORS.red, tension: 0.3 },
+            { label: "Partial action", data: [18.4, 18.0, 17.4, 17.1, 16.8, 16.5, 16.3, 16.1, 15.9, 15.8, 15.8, 15.8], borderColor: COLORS.amber, tension: 0.3 },
+            { label: "Full action", data: [18.4, 17.2, 16.0, 14.8, 13.8, 12.9, 12.1, 11.6, 11.2, 10.8, 10.6, 10.4], borderColor: COLORS.teal, tension: 0.3 }
+          ]
+        },
+        options: chartBaseOptions({ plugins: { ...chartBaseOptions().plugins, bestPracticeLine: { value: 9.1, label: "Industry best practice 9.1%" } }, scales: { x: { grid: { color: COLORS.grid }, ticks: { color: COLORS.tick } }, y: { min: 8, max: 22, grid: { color: COLORS.grid }, ticks: { color: COLORS.tick, callback: (v) => `${v}%` } } } })
+      });
+
+      new Chart(document.getElementById("clvChart"), {
+        type: "radar",
+        data: {
+          labels: ["Tenure", "Multi-policy", "Referral", "NPS", "Premium growth", "Claim efficiency"],
+          datasets: [
+            { label: "Current", data: [58, 44, 32, 41, 48, 52], borderColor: COLORS.red, backgroundColor: "rgba(230,57,70,0.16)" },
+            { label: "Projected", data: [82, 68, 63, 78, 72, 76], borderColor: COLORS.teal, backgroundColor: "rgba(0,212,184,0.16)" }
+          ]
+        },
+        options: chartBaseOptions({
+          scales: {
+            r: {
+              angleLines: { color: COLORS.grid },
+              grid: { color: COLORS.grid },
+              pointLabels: { color: COLORS.text },
+              ticks: { color: COLORS.tick, backdropColor: "transparent" },
+              min: 0,
+              max: 100
+            }
+          }
+        })
+      });
+    }
+
+    function animateCounters() {
+      const counters = document.querySelectorAll("[data-count]");
+      counters.forEach((el) => {
+        const target = Number(el.dataset.count);
+        const decimals = Number(el.dataset.decimals || 0);
+        const prefix = el.dataset.prefix || "";
+        const suffix = el.dataset.suffix || "";
+        const format = el.dataset.format;
+        const start = performance.now();
+        const duration = 1500;
+
+        function step(now) {
+          const progress = Math.min((now - start) / duration, 1);
+          const eased = 1 - Math.pow(1 - progress, 3);
+          const value = target * eased;
+          const display = format === "number" ? money.format(Math.round(value)) : value.toFixed(decimals);
+          el.textContent = `${prefix}${display}${suffix}`;
+          if (progress < 1) requestAnimationFrame(step);
+        }
+
+        requestAnimationFrame(step);
+      });
+    }
+
+    function renderWatchlist() {
+      const policy = document.getElementById("filter-policy").value;
+      const risk = document.getElementById("filter-risk").value;
+      const region = document.getElementById("filter-region").value;
+      const tenure = document.getElementById("filter-tenure").value;
+      const search = document.getElementById("filter-search").value.trim().toLowerCase();
+
+      const filtered = PORTFOLIO
+        .filter((client) => policy === "all" || client.policyType === policy)
+        .filter((client) => risk === "all" || client.riskBand === risk)
+        .filter((client) => region === "all" || client.region === region)
+        .filter((client) => tenure === "all" || tenureBand(client.tenureYears) === tenure)
+        .filter((client) => !search || client.name.toLowerCase().includes(search))
+        .sort((a, b) => (b.churnScore * b.revenueAtRisk) - (a.churnScore * a.revenueAtRisk))
+        .slice(0, 10);
+
+      document.getElementById("table-count").textContent = `Showing ${filtered.length} priority clients from ${PORTFOLIO.length} simulated portfolio records.`;
+
+      const body = document.getElementById("watchlist-body");
+      body.innerHTML = filtered.map((client) => {
+        const status = client.churnScore >= 85 ? "URGENT" : client.churnScore >= 70 ? "HIGH" : client.churnScore >= 40 ? "WATCH" : "MAINTAIN";
+        const badgeClass = client.riskBand.toLowerCase();
+        const rowClass = client.riskBand === "High" ? "high-risk" : "";
+        return `
+          <tr class="${rowClass}">
+            <td><strong>${client.name}</strong><br><span class="microcopy">${client.region}</span></td>
+            <td>${client.policyType}</td>
+            <td>${client.tenureYears}yr</td>
+            <td><span class="badge ${badgeClass}">${client.churnScore}%</span></td>
+            <td>${client.primaryRiskSignal}</td>
+            <td>${formatKES(client.revenueAtRisk)}</td>
+            <td>${client.recommendedAction}</td>
+            <td><span class="badge ${status === "URGENT" ? "high" : status === "HIGH" ? "medium" : "low"}">${status}</span></td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function updateActiveNavigation() {
+      const sections = [...document.querySelectorAll(".chapter")];
+      const navItems = [...document.querySelectorAll("[data-target]")];
+      let current = sections[0].id;
+      sections.forEach((section) => {
+        const rect = section.getBoundingClientRect();
+        if (rect.top <= window.innerHeight * 0.38 && rect.bottom >= window.innerHeight * 0.38) current = section.id;
+      });
+      navItems.forEach((item) => item.classList.toggle("active", item.dataset.target === current));
+      document.getElementById("chat-widget").classList.toggle("available", current === "chapter7" || current === "chapter8");
+
+      const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+      const depth = scrollable > 0 ? (window.scrollY / scrollable) * 100 : 0;
+      document.getElementById("progress-bar").style.width = `${Math.min(100, Math.max(0, depth))}%`;
+    }
+
+    function setupReveal() {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) entry.target.classList.add("visible");
+        });
+      }, { threshold: 0.16 });
+      document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
+    }
+
+    function setupSimulator() {
+      const premium = document.getElementById("sim-premium");
+      const contact = document.getElementById("sim-contact");
+      const claim = document.getElementById("sim-claim");
+      const scoreEl = document.getElementById("sim-score");
+      const copyEl = document.getElementById("sim-copy");
+
+      function calculate() {
+        const premiumValue = Number(premium.value);
+        const contactValue = Number(contact.value);
+        const claimValue = Number(claim.value);
+        const score = Math.min(96, Math.max(8, Math.round(18 + premiumValue * 1.1 + contactValue * 0.32 + claimValue * 0.42)));
+        document.getElementById("premium-value").textContent = `${premiumValue}%`;
+        document.getElementById("contact-value").textContent = `${contactValue} days`;
+        document.getElementById("claim-value").textContent = `${claimValue} days`;
+        scoreEl.textContent = `${score}%`;
+        if (score >= 70) {
+          scoreEl.style.color = COLORS.red;
+          copyEl.textContent = "High risk. Act within 48 hours with a broker-led recovery plan.";
+        } else if (score >= 40) {
+          scoreEl.style.color = COLORS.goldBright;
+          copyEl.textContent = "Medium risk. Broker intervention should happen this week.";
+        } else {
+          scoreEl.style.color = COLORS.teal;
+          copyEl.textContent = "Low risk. Maintain the current service rhythm.";
+        }
+      }
+
+      [premium, contact, claim].forEach((input) => input.addEventListener("input", calculate));
+      calculate();
+    }
+
+    function setupChat() {
+      const widget = document.getElementById("chat-widget");
+      const toggle = document.getElementById("chat-toggle");
+      const input = document.getElementById("chat-input");
+      const response = document.getElementById("chat-response");
+
+      toggle.addEventListener("click", () => widget.classList.toggle("collapsed"));
+
+      function answer() {
+        const term = input.value.trim().toLowerCase();
+        const client = PORTFOLIO.find((item) => item.name.toLowerCase().includes(term));
+        if (!term || !client) {
+          response.innerHTML = "I could not find that client in the simulated watchlist. Try Amina Hassan, James Omondi, Grace Waweru, or Peter Mwangi.";
+          return;
+        }
+        const signals = [
+          client.primaryRiskSignal,
+          `${client.daysSinceContact} days since broker contact`,
+          `${client.premiumChangePct}% premium change`,
+          client.claimDenied ? "claim denied" : `${client.paymentsMissed} missed payments`
+        ].slice(0, 4);
+        response.innerHTML = `
+          <strong>${client.name}</strong><br>
+          <span class="badge ${client.riskBand.toLowerCase()}">${client.churnScore}% ${client.riskBand} risk</span>
+          <p><strong>Top signals:</strong> ${signals.join(", ")}.</p>
+          <p><strong>Broker action:</strong> ${client.recommendedAction}</p>
+          <p><strong>Revenue protected:</strong> ${formatKES(client.revenueAtRisk)}</p>
+        `;
+      }
+
+      document.getElementById("chat-submit").addEventListener("click", answer);
+      document.getElementById("chat-clear").addEventListener("click", () => {
+        input.value = "";
+        response.textContent = "Type a client name to generate a broker-ready recommendation.";
+      });
+      input.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") answer();
+      });
+    }
+
+    function setupControls() {
+      ["filter-policy", "filter-risk", "filter-region", "filter-tenure", "filter-search"].forEach((id) => {
+        document.getElementById(id).addEventListener("input", renderWatchlist);
+      });
+
+      document.getElementById("menu-toggle").addEventListener("click", () => document.body.classList.toggle("menu-open"));
+      document.querySelectorAll(".mobile-menu a").forEach((link) => link.addEventListener("click", () => document.body.classList.remove("menu-open")));
+      document.getElementById("print-report").addEventListener("click", () => window.print());
+      document.getElementById("jump-watchlist").addEventListener("click", () => document.getElementById("chapter6").scrollIntoView({ behavior: "smooth" }));
+
+      window.addEventListener("scroll", updateActiveNavigation, { passive: true });
+      window.addEventListener("resize", updateActiveNavigation);
+    }
+
+    function setupDate() {
+      document.getElementById("memo-date").textContent = monthFormatter.format(new Date());
+    }
+
+    window.addEventListener("load", () => {
+      setTimeout(() => document.body.classList.add("ready"), 350);
+      setupReveal();
+      setupControls();
+      setupSimulator();
+      setupChat();
+      setupDate();
+      renderWatchlist();
+      animateCounters();
+      createCharts();
+      updateActiveNavigation();
+    });
+  </script>
+</body>
+</html>
