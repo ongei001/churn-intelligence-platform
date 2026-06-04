@@ -1,6 +1,6 @@
 # Churn Intelligence Platform
 
-## Portfolio Case Study
+##  Case Study
 
 The Churn Intelligence Platform is a complete CEO-facing web application for an insurance brokerage. It turns customer churn prediction into a boardroom-ready story: who is leaving, why they are leaving, how early the business can detect it, and exactly what brokers should do to retain high-value clients.
 
@@ -204,7 +204,7 @@ This project demonstrates my ability to:
 - Package a web app for a Cloudflare Worker-compatible hosting platform.
 - Present technical work as a business case study.
 
-## Portfolio Summary
+##  Summary
 
 I built this Churn Intelligence Platform to show how predictive analytics can become a practical business tool. The application does not just say which clients may churn. It explains why, ranks them by revenue at risk, recommends retention actions, projects the financial upside, and presents the entire story in a format suitable for senior leadership.
 
