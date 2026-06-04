@@ -9,7 +9,6 @@ This project was designed as an executive analytics product rather than a generi
 ## Live Website
 
 - Public website: https://ongei001.github.io/churn-intelligence-platform/
-- Sites deployment: https://churn-intelligence-platform.numida-3187.chatgpt-team.site
 - GitHub repository: https://github.com/ongei001/churn-intelligence-platform
 
 ## Problem Statement
